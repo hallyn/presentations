@@ -1,0 +1,341 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%	PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+%----------------------------------------------------------------------------------------
+%	TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[User Namespaces]{Application Confinement with User namespaces} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Stéphane Graber, Serge Hallyn} % Your name
+\institute[Canonical] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+Canonical, Inc \\ % Your institution for the title page
+\medskip
+\textit{stgraber@ubuntu.com, serge.hallyn@ubuntu.com} % Your email address
+}
+\date{\today} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%	PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{State of Containers Prior to User namespaces} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+\begin{frame}
+\frametitle{Containers prior to user namespaces}
+\textbf{Namespaces}
+\begin{itemize}
+\item $id \rightarrow resource$ mapping
+	\begin{itemize}
+	\item Prevent resource access by not providing a handle
+	\item i.e. pid 1 is not global init
+	\item {\tt /etc/shadow} not accessible
+	\end{itemize}
+\item Tons of "leaks" exist
+\end{itemize}
+
+\textbf{Control groups}
+\begin{enumerate}
+\item Resource limits and accounting
+\item Limit device access
+\item If root, re-mount cgroups and change/escape limits.
+\end{enumerate}
+
+\vspace{.25in}
+
+\textbf{Capabilities bounding set}
+\begin{enumerate}
+\item Limit privs of root in container
+\item Root still owns most host files
+\item {\tiny http://www.sevagas.com/IMG/pdf/exploiting\_capabilities\_the\_dark\_side.pdf}
+\item Prevents useful things like tmpfs mounts
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\textbf{LSMs}
+\begin{enumerate}
+\item Paper of the (huge) remaining holes
+\item i.e. prevent {\tt /proc/sys/*} writing, etc
+\item "Safe from accidental damage by container root"
+\item People always want unsafe exceptions
+\item Lack of policy nesting limits use {\em in} containers
+\end{enumerate}
+
+\vspace{0.25in}
+
+\textbf{Seccomp}
+\begin{enumerate}
+\item Prevent use of some syscalls
+\item Reduce exposed kernel surface
+\item Hard to do generally
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{center}
+\begin{figure}
+\begin{minipage}{0.5\linewidth}
+\begin{verbatim}
+2
+blacklist
+[all]
+kexec_load errno 1
+open_by_handle_at errno 1
+init_module errno 1
+finit_module errno 1
+delete_module errno 1
+\end{verbatim}
+\end{minipage}
+\caption{Stock Ubuntu LXC Seccomp filter}
+\end{figure}
+\end{center}
+\end{frame}
+
+\section{User namespaces}
+\begin{frame}
+\begin{enumerate}
+\item Nevertheless
+	\begin{enumerate}
+	\item Root in container is still root on host
+	\item Any leak = game over
+	\item Answer: "Wait for user namespaces"
+	\end{enumerate}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{User namespaces}
+\textbf{Goals}
+\begin{enumerate}
+\item Uid separation
+	\begin{enumerate}
+	\item c1.500 != c2.500
+	\item Separate access controls (kill, open, etc)
+	\item Separate accounting, limits
+	\end{enumerate}
+\item Container root privileged over container
+	\begin{enumerate}
+	\item uids
+	\item network
+	\item etc
+	\end{enumerate}
+\item Container root has no privilege outside of container
+	\begin{enumerate}
+	\item Root in container as safe as unpriv user on host
+	\item Safe for use by untrusted users
+	\end{enumerate}
+\item Able to be nested
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\textbf{Original user namespace design}
+\begin{enumerate}
+\item Per-userns uid table
+	\begin{enumerate}
+	\item Simple separate accounting
+	\end{enumerate}
+\item user = $\{ uid, userns \}$
+	\begin{enumerate}
+	\item Access checks complicated
+	\item Performance impact
+	\item No verification that conversion is complete
+	\item No confidence
+	\end{enumerate}
+\item On-disk representation options
+	\begin{enumerate}
+	\item use xattrs
+	\item mount-time mapping definition
+	\item {\tt /etc/} file naming namespaces, consulted at mount
+	\end{enumerate}
+\item Many years, little progress
+\end{enumerate}
+\end{frame}
+
+\begin{frame}[fragile]
+\textbf{Current user namespace design}
+\begin{enumerate}
+\item By Eric Biederman
+\item In-kernel uids become new type (kuid\_t)
+\begin{verbatim}
+typedef struct {
+	uid_t val;
+} kuid_t;
+\end{verbatim}
+Compiler enforces type safety
+\item Uids map 1-1 to kuids
+	\begin{enumerate}
+	\item Translated at kernel-user boundary
+	\item Default mapping 0-4294967295:0-4294967295
+	\item Unmapped userids show up as -1, has `o' perms
+	\item Unpriv user can only map own host uid
+	\end{enumerate}
+\item Other namespaces owned by a user ns
+	\begin{enumerate}
+	\item Root in ns has full privilege over what it owns
+	\end{enumerate}
+\end{enumerate}
+\end{frame}
+
+\begin{frame}
+\textbf{Uid delegation}
+\begin{enumerate}
+\item Root delegates {\em subuids} to users
+	\begin{enumerate}
+	\item {\tt /etc/subuid} and {\tt /etc/subgid}: \
+serge:100000:65536
+	\item Set using {\tt usermod}: \
+usermod -v 100000-200000 -w 100000-200000 serge
+	\end{enumerate}
+\item Setuid-root programs write to {\tt /proc/self/\{ug\}id\_map}
+\item Each user may be delegated a set of subuids and subgids
+\end{enumerate}
+\end{frame}
+
+%\section{Unprivileged containers}
+\begin{frame}[fragile]
+\frametitle{LXC Integration}
+\begin{enumerate}
+\item Container configuration file lists id mappings:
+\begin{verbatim}
+lxc.id_map = u 0 100000 1000
+lxc.id_map = g 0 100000 1000
+lxc.id_map = u 1000 1000 1
+lxc.id_map = g 1000 1000 1
+lxc.id_map = u 1001 101001 64535
+lxc.id_map = g 1001 101001 64535
+\end{verbatim}
+\item lxc-create untars rootfs in namespace
+\item lxc-user-nic: hook veth up to container bridge
+	\begin{enumerate}
+	\item Subject to {\tt /etc/lxc/lxc-usernet}
+	\begin{verbatim}
+# USERNAME TYPE BRIDGE COUNT
+serge veth lxcbr0 10
+	\end{verbatim}
+	\end{enumerate}
+\end{enumerate}
+\end{frame}
+
+\section{Application confinement demo}
+\begin{frame}
+\frametitle{Take it away, Stéphane}
+\end{frame}
+
+\section{LSMs}
+\begin{frame}
+\frametitle{LSM Interaction}
+\begin{enumerate}
+\item LSMs:
+	\begin{enumerate}
+	\item Only reduce access
+	\item MAC orthogolan to DAC
+	\end{enumerate}
+\item However, transitions {\em do} lead to "privileged" types
+\item Examples:
+	\begin{enumerate}
+	\item {\em passwd}: 
+	\item {\em signals}: 
+	\end{enumerate}
+\item So DAC ends up segragating the MAC
+\item Is this a problem, or by design?
+\end{enumerate}
+\end{frame}
+
+%------------------------------------------------
+
+\end{document} 

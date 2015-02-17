@@ -1,0 +1,163 @@
+## this is done on a fresh utopic instance.
+
+sudo apt-get update -qy
+sudo apt-get install -q --assume-yes lxc </dev/null
+
+sudo hostname lxc-host
+echo "127.0.1.1 lxc-host" | sudo tee -a /etc/hosts
+
+#pauth="PasswordAuthentication"
+#sudo sed -i "s,$pauth.*,$pauth yes," /etc/ssh/sshd_config
+
+for n in http_proxy https_proxy; do echo "$n=http://squid.internal:3128"; done |
+  sudo tee -a /etc/environment
+
+[ -f ~/.ssh/id_rsa ] || ssh-keygen -f ~/.ssh/id_rsa -N '' </dev/null
+ssh-keyscan localhost > ~/.ssh/known_hosts
+
+url=https://gist.githubusercontent.com/smoser/49444542158f2e5f88f1/raw/lxc-userns-setup
+wget "$url" -O lxc-userns-setup
+chmod 755 lxc-userns-setup
+
+mkdir -p ~/.byobu
+cat > ~/.byobu/.tmux.conf <<"EOF"
+set-option -g display-panes-active-colour $BYOBU_ACCENT
+set-option -g pane-active-border-bg $BYOBU_ACCENT
+set-option -g pane-active-border-fg $BYOBU_ACCENT
+EOF
+
+cat > colorprompt <<"EOF"
+#colorprompt
+if [ -t 1 ]; then
+  case "$UID:$HOSTNAME" in
+    0:*-c?) prompt='\[\e[1;32m\]\u@\h\[\e[0m\]# ';; # green
+    *:*-c?) prompt='\[\e[1;31m\]\u@\h\[\e[0m\]$ ';; # green
+    0:*)    prompt='\[\e[1;31m\]\u@\h\[\e[0m\]# ';; # red
+    *:*)    prompt='\[\e[1;33m\]\u@\h\[\e[0m\]$ ';; # yellow
+  esac
+  PS1=$prompt
+fi
+EOF
+
+utoks="anna:2000000 elsa:3000000"
+for t in $utoks; do
+   u=${t%:*}; baseid=${t#*:}
+   sudo adduser --disabled-password --gecos "$u" $u &&
+   cat ~/.ssh/authorized_keys ~/.ssh/id_rsa.pub |
+      sudo -Hu "$u" sh -c 'umask 066 && cd && mkdir .ssh && cat > .ssh/authorized_keys'
+   for f in /etc/sub?id; do
+      sudo sed -i "/^$u/d" "$f"
+      echo "$u:$baseid:1000000" | sudo tee -a "$f" >/dev/null
+   done
+   sudo ./lxc-userns-setup "$u" || break;
+done
+
+
+writescript() {
+   local n="$1" sudo=""
+   [ "${n#*/}" = "$n" ] && n="/usr/local/bin/$n"
+   [ -w "$(dirname $n)" ] || sudo="sudo"
+   $sudo sh -c 'tee "$1" >/dev/null && chmod 755 "$1" || rm -f "$1"' \
+      writescript "$n"
+}
+
+writescript lxc_attach <<"EOF"
+#!/bin/sh
+exec lxc-attach -n "$1" -- env HOME=/root /bin/bash
+EOF
+
+
+writescript gencfg <<"EOF"
+#!/bin/sh
+myname=$(id --name --user)
+n="${1:-1}"
+inc=100000
+bu=$(awk -F: '$1 == mn { print $2 }' mn=$myname /etc/subuid)
+bg=$(awk -F: '$1 == mn { print $2 }' mn=$myname /etc/subgid)
+uid_s=$(($bu+(($n-1)*$inc)))
+gid_s=$(($bg+(($n-1)*$inc)))
+cat <<ENDCFG
+# Container specific configuration
+lxc.id_map = u 0 ${uid_s} 65535
+lxc.id_map = g 0 ${gid_s} 65535
+
+# Network configuration
+lxc.network.type = veth
+lxc.network.link = lxcbr0
+lxc.network.flags = up
+lxc.network.hwaddr = 00:16:3e:xx:xx:xx
+ENDCFG
+EOF
+
+writescript ./setup <<"EOF"
+#!/bin/bash
+set -e
+rel="utopic"
+arch="amd64"
+myname=$(id --name --user)
+opts="--dist=ubuntu --release=$rel --arch=$arch"
+bu=$(awk -F: '$1 == mn { print $2 }' mn=$myname /etc/subuid)
+bg=$(awk -F: '$1 == mn { print $2 }' mn=$myname /etc/subgid)
+inc=1000000
+for n in 1 2; do
+  cname="$myname-c$n"
+  gencfg $n > temp.cfg
+  lxc-create --config=temp.cfg --template=download --name=$cname -- $opts
+  lxc-start --daemon --name=$cname
+  lxc-attach --name=$cname -- sh -c \
+    "[ -d /home/ubuntu ] || adduser --disabled-password --gecos ubuntu ubuntu"
+done
+EOF
+
+##for t in ~/.local/share/lxc/*/rootfs/tmp/; do cp /usr/local/bin/mywait $t; done
+writescript moreinfo <<"EOF"
+#!/bin/sh
+echo "https://github.com/hallyn/ods-2014-userns"
+echo "cubswin:)"
+EOF
+
+writescript mywait <<"EOF"
+#!/bin/bash
+name="sleeper-$(id --name --user)@$(hostname)"
+fname="/tmp/$name.info"
+rm -f "$fname"
+(
+msg="[$name] pid=$$ uid=$(id -u) gid=$(id -g)"
+echo "$msg" | tee "$fname"
+fifo=$(mktemp -u "${TMPDIR:-/tmp}/${0##*/}.XXXXXX")
+# create a fifo, close standard file descriptors open one from fifo, rm fifo
+mkfifo "$fifo"
+exec 0<&- 1>&- 2>&-
+exec 3<> "$fifo"
+rm -f "$fifo"
+exec -a "$name" cat <&3 &>/dev/null
+) &
+trap "rm -f $fname" EXIT
+wait
+EOF
+
+writescript showinfo <<"EOF"
+#!/bin/sh
+if [ "$1" = "files" ]; then
+  (
+  echo "fname uid gid mode"
+  find /tmp /home/*/.local/share/lxc/*/rootfs/ \
+     -name "sleeper-*" -printf "%f uid=%u gid=%g mode=%m\n" 2>/dev/null
+  ) | column -t
+elif [ "$1" = "ps" ]; then
+  (
+  echo command uid gid pid userns
+  #ps -ax -o command,user,gid,pid,pidns | egrep "^(sleeper|/sbin/init)"
+  ps -ax -o command,user,gid,pid,userns | egrep "^(sleeper|/sbin/init)"
+  ) | column -t
+else
+   grep "lxc.id_map" /home/*/.local/share/lxc/*/config | sed s,.*lxc/,,
+fi
+EOF
+
+ssh anna@localhost bash < setup
+ssh elsa@localhost bash < setup
+
+sudo sh -c 'for d in /home/*/.local/share/lxc/*/rootfs/usr/local/bin; do echo $d; cp $1 $d; done' -- "/usr/local/bin/mywait"
+
+sudo sh -c 'for r in / /home/*/.local/share/lxc/*/rootfs; do for p in $r/root $r/home/*; do f=$p/.bashrc; [ -f "$f" ] || continue; grep "colorprompt" "$f" && continue; echo $f; cat "$1" >> "$f"; done; done;' -- colorprompt

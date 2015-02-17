@@ -1,0 +1,2 @@
+cp -r skel/* .
+git clone git://github.com/hakimel/reveal.js -b 3.0.0

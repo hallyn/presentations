@@ -1,0 +1,15 @@
+\textbf{User namespace design}
+\begin{enumerate}
+\item By Eric Biederman
+\item Uids map 1-1 to kuids
+\begin{enumerate}
+\item Translated at kernel-user boundary
+\item Default mapping 0-4294967295:0-4294967295
+\item Unmapped userids show up as -1, has `o' perms
+\item Unpriv user can only map own host uid
+\end{enumerate}
+\item Other namespaces owned by a user ns
+\begin{enumerate}
+\item Root in ns has full privilege over what it owns
+\end{enumerate}
+\end{enumerate}

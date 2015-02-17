@@ -1,0 +1,50 @@
+Dump of: https://etherpad.openstack.org/p/q2bZ0jw3iJ
+
+talk link: http://openstacksummitnovember2014paris.sched.org/event/33a767fd67bd6064f6fdbfad92760438
+smoser old talk: https://github.com/smoser/talk-lxc/blob/master/misc-notes.txt
+
+== user namespaces ==
+
+== 
+Serge thought:
+    - very quick general introduction to containers as popularized most recently by docker
+    - list all things that help to protect
+      - apparmor
+      - posix caps
+      - seccomp
+      - private devpts
+      - namespaces
+     - devices cgroup, other cgroups
+    
+    X. go over what user namespaces are
+       - precise security guarantees/properties
+        (root = unpriv user;  full caps to owned resources;  DAC+MAC orthogonal)
+       - go ove rwhat you cannot do
+         - mknod
+         - mount filesystems (fuse; seccomp+fuse to transparently fake mounting)   -> serge still to add (oct 22)
+
+     
+         
+     X. demo (nova launch 50-100 containers on a laptop)
+     X. smoser suggested - everyone must stay o their toes
+       kernel cve list / vulnerabilities chart
+         http://www.cvedetails.com/vulnerability-list/vendor_id-33/product_id-47/year-2014/opgpriv-1/Linux-Linux-Kernel.html
+
+        -  show list of kernel cves?  point out those are stlil vulnerable
+           (but kvm is also vuln to some of those)
+        - point out that criu and migration would help some of these
+
+
+things to say:
+     * lots of things we talk about are how things work in lxc.  other container managers need to be careful. with user name spaces you get the same restrictions in place that you're used to .  Ie, you have for long periods of time not run daemons as root.
+     
+     
+
+to "overview" add:
+     * intro to containers -- very high level
+     * what can you not do in a user namespace?
+     * what sorts of attacks are you still vulnerable to
+       (cve list with list of vulnderabilities)
+     * for more info, come to booth
+       * flex demo / ncflex demo
+       * 
