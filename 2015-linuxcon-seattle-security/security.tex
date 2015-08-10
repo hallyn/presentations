@@ -1,0 +1,184 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%    PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+%----------------------------------------------------------------------------------------
+%    TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Container Security]{Container security - past, present and future} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Serge Hallyn} % Your name
+\institute[Canonical] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+{
+Canonical, Inc \\ % Your institution for the title page
+\medskip
+\textit{serge.hallyn@ubuntu.com} % Your email address
+}
+\date{\today} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+%----------------------------------------------------------------------------------------
+%    PRESENTATION SLIDES
+%----------------------------------------------------------------------------------------
+
+%------------------------------------------------
+\section{What is this talk about} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
+\begin{frame}
+\frametitle{What is a container}
+  \pause
+\textbf{Other Implementations}
+\begin{itemize}
+  \item Other OSs export concept of a `container' for user-space
+    \begin{itemize}
+      \item Solaris zones
+      \item BSD Jail
+    \end{itemize}
+  \item Simple to create and use
+
+  \pause
+  \item VServer, OpenVZ have a `container'
+    \begin{itemize}
+      \item VServer `context'
+      \item OpenVZ `ve\_struct'
+    \end{itemize}
+\end{itemize}
+
+  \vspace{0.15in}
+\textbf{Upstream Linux}
+\begin{itemize}
+  \item Linux has $N$ kernel features to support containers \\
+  \vspace{0.15in}
+  \pause
+  {\bf Containers in Linux are a user-space fiction built upon a set of kernel features}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Pros/Cons of Linux approach}
+\begin{itemize}
+  \item {\bf Pros:}
+    \begin{itemize}
+      \item Flexible - use just what you need (i.e. only network namespaces)
+      \item Flexible - easy sharing among your {\em whatzit}s
+      \item Functionality could be implemented piecemeal
+    \end{itemize}
+  \item {\bf Cons:}
+    \begin{itemize}
+      \item Flexible - easy to forget to plug a leak
+      \item Flexible - unexpected interactions \\
+        i.e. `ip netns' versus `unshare -m' versus `MS\_SHARED' root
+      \item Functionality could be implemented piecemeal
+    \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{What is this talk about?}
+\pause
+\begin{itemize}
+  \item As container features were developed, how has userspace safely used them
+  \item What were the limits
+  \item What are the current limits and state of the art
+  \item What's to come?
+\end{itemize}
+
+\end{frame}
+
+
+
+%------------------------------------------------
+
+\end{document} 
