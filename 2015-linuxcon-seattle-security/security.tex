@@ -154,6 +154,7 @@ Canonical, Inc \\ % Your institution for the title page
       \item Flexible - easy sharing among your {\em whatzit}s
       \item Functionality could be implemented piecemeal
     \end{itemize}
+\pause
   \item {\bf Cons:}
     \begin{itemize}
       \item Flexible - easy to forget to plug a leak
@@ -167,12 +168,108 @@ Canonical, Inc \\ % Your institution for the title page
 
 \begin{frame}
 \frametitle{What is this talk about?}
-\pause
 \begin{itemize}
   \item As container features were developed, how has userspace safely used them
   \item What were the limits
   \item What are the current limits and state of the art
   \item What's to come?
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Before containers}
+  \begin{itemize}
+    \item Chroot
+      \begin{itemize}
+        \item Easy to escape
+        \item Convenient
+        \item No illusions of security
+      \end{itemize}
+\pause
+    \item Mount namespace + pivot\_root
+  \begin{itemize}
+  \item Avoid trivial chroot escape
+  \item Root is still fully privileged uid 0
+  \end{itemize}
+
+\pause
+    \item LSMs
+      \begin{itemize}
+        \item Example: selinux play machine
+        \item Forbidden things are simply forbidden - `my own server'
+      \end{itemize}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Containers functionality}
+\begin{itemize}
+\item Basic namespaces (2006-2008)
+  \begin{itemize}
+  \item UTS - hostname
+  \item IPC - sysv and Posix ipc
+  \item PID namespaces - process ids
+  \item network namespaces - Layer 2 net stack
+  \end{itemize}
+
+\item Capability bounding set - 2007
+  \begin{itemize}
+    \item remove CAP\_MKNOD from container (no device cgroup yet)
+    \item remove CAP\_SYS\_ADMIN from container (prevent (re)mount etc)
+    \item root becomes safer - but still owns host root files
+  \end{itemize}
+
+\item Device cgroup, 2008
+  \begin{itemize}
+  \item whitelist by major/minor
+  \item container can keep CAP\_MKNOD
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Containers functionality (contd)}
+\begin{itemize}
+\item Apparmor lxc policy
+  \begin{itemize}
+  \item not new, but general policies ~ 2010
+  \item  goal to prevent accidental breakages \\
+  (i.e. soundcard reset when starting container)
+  \item prevent writing to proc, sys, etc \\
+  (supported by mount rules)
+  \end{itemize}
+%\item Heroku - https://devcenter.heroku.com/articles/dynos
+\item Seccomp
+  \begin{itemize}
+  \item Prevent use of system calls
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{User namespaces}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{What's to come}
+\begin{itemize}
+\item More functionality
+  \begin{itemize}
+  \item blockfs mounting
+  \item namespaced loopback
+  \item LSM namespaces
+  \item User-namespaced file capabilities
+  \item syslog, audit, udev namespace
+  \end{itemize}
+
+\item Hardware assisted security
+  \begin{itemize}
+  \item (add some publically available links here>
+  \end{itemize}
 \end{itemize}
 
 \end{frame}
