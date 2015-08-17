@@ -121,8 +121,8 @@ Canonical, Inc \\ % Your institution for the title page
 \begin{itemize}
   \item Other OSs export concept of a `container' for user-space
     \begin{itemize}
-      \item Solaris zones
       \item BSD Jail
+      \item Solaris zones
     \end{itemize}
   \item Simple to create and use
 
@@ -153,6 +153,7 @@ Canonical, Inc \\ % Your institution for the title page
       \item Flexible - use just what you need (i.e. only network namespaces)
       \item Flexible - easy sharing among your {\em whatzit}s
       \item Functionality could be implemented piecemeal
+      \item Each piece well-designed
     \end{itemize}
 \pause
   \item {\bf Cons:}
@@ -223,7 +224,7 @@ Canonical, Inc \\ % Your institution for the title page
 
 \item Device cgroup, 2008
   \begin{itemize}
-  \item whitelist by major/minor
+  \item whitelist by device type and major/minor
   \item container can keep CAP\_MKNOD
   \end{itemize}
 \end{itemize}
@@ -240,6 +241,16 @@ Canonical, Inc \\ % Your institution for the title page
   \item prevent writing to proc, sys, etc \\
   (supported by mount rules)
   \end{itemize}
+\pause
+\item Combined
+  \begin{itemize}
+  \item apparmor
+  \item device cgroup
+  \item capbility bounding set
+  \item namespaces
+  \end{itemize}
+
+\pause
 %\item Heroku - https://devcenter.heroku.com/articles/dynos
 \item Seccomp
   \begin{itemize}
@@ -251,8 +262,17 @@ Canonical, Inc \\ % Your institution for the title page
 
 \begin{frame}
 \frametitle{User namespaces}
+  \begin{itemize}
+  \item Root in a container is privileged in container
+  \item Root in a container is unprivileged on host
+  \pause
+  \item Map uid ranges from host to ranges in namespace
+  \item Map uid ranges from ns to nested ns
+  \item Privilege only over namespaces `owned' by user ns
+  \item Admin allocates `subuids' to unprivileged users
+  \item Unpriv users can create nics, mounts, etc, after unsharing
+  \end{itemize}
 \end{frame}
-
 
 \begin{frame}
 \frametitle{What's to come}
@@ -265,15 +285,29 @@ Canonical, Inc \\ % Your institution for the title page
   \item User-namespaced file capabilities
   \item syslog, audit, udev namespace
   \end{itemize}
+\end{itemize}
+\end{frame}
 
+\begin{frame}
+\frametitle{What's to come (cont'd)}
+\begin{itemize}
 \item Hardware assisted security
   \begin{itemize}
+  \item Clear containers
+    \begin{itemize}
+    \item {\tiny \url{https://lwn.net/Articles/644675/}}
+    \end{itemize}
+  \item Magnum
   \item Dune: Safe User-level Access to Privileged CPU Features \\
-  {\tiny \url{https://www.usenix.org/conference/osdi12/technical-sessions/presentation/belay}}
+    \begin{itemize}
+    \item Sandboxing untrusted applications
+    \item {\tiny \url{https://www.usenix.org/conference/osdi12/technical-sessions/presentation/belay}}
+    \end{itemize}
   \item Shielding applications from an untrusted cloud with Haven \\
-  {\tiny \url{https://www.usenix.org/conference/osdi14/technical-sessions/presentation/baumann}}
-  \item Clear containers \\
-  {\tiny \url{https://lwn.net/Articles/644675/}}
+    \begin{itemize}
+    \item Protecting applications from untrusted OS
+    \item {\tiny \url{https://www.usenix.org/conference/osdi14/technical-sessions/presentation/baumann}}
+    \end{itemize}
   \end{itemize}
 \end{itemize}
 
