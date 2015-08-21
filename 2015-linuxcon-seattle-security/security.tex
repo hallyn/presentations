@@ -115,9 +115,11 @@ Canonical, Inc \\ % Your institution for the title page
 %------------------------------------------------
 \section{What is this talk about} % Sections can be created in order to organize your presentation into discrete blocks, all sections and subsections are automatically printed in the table of contents as an overview of the talk
 \begin{frame}
-\frametitle{What is a container}
+\frametitle{Containers}
+\begin{itemize}
+\item OS Level Virtualization
   \pause
-\textbf{Other Implementations}
+\item Other Implementations
 \begin{itemize}
   \item Other OSs export concept of a `container' for user-space
     \begin{itemize}
@@ -134,13 +136,13 @@ Canonical, Inc \\ % Your institution for the title page
     \end{itemize}
 \end{itemize}
 
-  \vspace{0.15in}
-\textbf{Upstream Linux}
+  \pause
+\item Upstream Linux
 \begin{itemize}
   \item Linux has $N$ kernel features to support containers \\
   \vspace{0.15in}
-  \pause
   {\bf Containers in Linux are a user-space fiction built upon a set of kernel features}
+\end{itemize}
 \end{itemize}
 
 \end{frame}
@@ -212,6 +214,7 @@ Canonical, Inc \\ % Your institution for the title page
   \item UTS - hostname
   \item IPC - sysv and Posix ipc
   \item PID namespaces - process ids
+  \item User - private copy of user structs
   \item network namespaces - Layer 2 net stack
   \end{itemize}
 
@@ -246,7 +249,7 @@ Canonical, Inc \\ % Your institution for the title page
   \begin{itemize}
   \item apparmor
   \item device cgroup
-  \item capbility bounding set
+  \item capability bounding set
   \item namespaces
   \end{itemize}
 
@@ -263,14 +266,23 @@ Canonical, Inc \\ % Your institution for the title page
 \begin{frame}
 \frametitle{User namespaces}
   \begin{itemize}
-  \item Root in a container is privileged in container
-  \item Root in a container is unprivileged on host
+  \item Requirements
+    \begin{itemize}
+      \item Root in a container is privileged in container
+      \item Root in a container is unprivileged on host
+      \item Safe for unprivileged users
+    \end{itemize}
+  \item Many long threads and POCs over the years
   \pause
-  \item Map uid ranges from host to ranges in namespace
-  \item Map uid ranges from ns to nested ns
-  \item Privilege only over namespaces `owned' by user ns
-  \item Admin allocates `subuids' to unprivileged users
-  \item Unpriv users can create nics, mounts, etc, after unsharing
+  \item New design
+    \begin{itemize}
+    \item Map uid ranges from host to ranges in namespace
+    \item Map uid ranges from ns to nested ns
+    \item Privilege only over namespaces `owned' by user ns
+    \item Unpriv users can create nics, mounts, etc, after unsharing
+    \item Unprivileged user may map own uid, or none
+    \item Admin allocates `subuids' to unprivileged users
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -297,12 +309,17 @@ Canonical, Inc \\ % Your institution for the title page
     \begin{itemize}
     \item {\tiny \url{https://lwn.net/Articles/644675/}}
     \end{itemize}
-  \item Magnum
+  \item Openstack Magnum
   \item Dune: Safe User-level Access to Privileged CPU Features \\
     \begin{itemize}
     \item Sandboxing untrusted applications
     \item {\tiny \url{https://www.usenix.org/conference/osdi12/technical-sessions/presentation/belay}}
     \end{itemize}
+  \item IBM SecureBlue++
+    \begin{itemize}
+    \item {\tiny \url{http://domino.research.ibm.com/library/cyberdig.nsf/papers/E605BDC5439097F085257A13004D25CA/$File/rc25287.pdf}}
+    \end{itemize}
+
   \item Shielding applications from an untrusted cloud with Haven \\
     \begin{itemize}
     \item Protecting applications from untrusted OS
