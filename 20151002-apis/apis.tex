@@ -110,6 +110,75 @@ Canonical, Ltd \\ % Your institution for the title page
 \end{figure}
 \end{frame}
 
+\begin{frame}
+\frametitle{Overview}
+\begin{itemize}
+\item 
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Openvz}
+\begin{itemize}
+\item Open sourced version of Virtuozzo
+\item Full system containers
+\item Very well liked
+\item Required custom kernel patches
+\item Being switched to libct
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Libvirt-lxc}
+\begin{itemize}
+\item Focus: Drive containers
+\item Client-server
+\item Non-root use of clients but not daemons
+  \begin{itemize}
+  \item Granting unpriv user == granting root
+  \end{itemize}
+\item Container creation through `virt-install'
+\item Bindings
+  \begin{itemize}
+  \item C, python, Java, C\#, Perl, OCaml, Ruby, PHP
+  \item Only for talking to daemon
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Lxc}
+\begin{itemize}
+\item Focus: container management
+\item API centered around own config language
+\item Easy container creation from the start
+\item Fully usable by non-root
+\item Bindings
+  \begin{itemize}
+  \item C, python, lua, go, ruby, haskell
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Libct}
+\begin{itemize}
+\item Focus: implement container drivers
+\item Completely independent of
+  \begin{itemize}
+  \item config language
+  \item container layout
+  \end{itemize}
+\item NO container creation
+\item No support (yet) for non-root use
+\item Support any combination of namespace sharing
+\item Bindings
+  \begin{itemize}
+  \item C, python, go
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
 
 %------------------------------------------------
 
