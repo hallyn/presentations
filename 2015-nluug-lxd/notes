@@ -1,0 +1,38 @@
+storage backends: dir, device, loopback nbd (qco2);  snapshot-clones using overlayfs, aufs, lvm, btrfs, zfs
+
+demo: show userids outside container;  show /proc/pid/self/attr and /proc/pid/self/status
+
+	  <h3>Apparmor</h3>
+	  <div>
+	   <ul>
+	     <li> LSM providing path-based access control to files etc</li>
+	     <li> Container == host root, can write to /proc/sysrq-trigger</li>
+	     <li> Apparmor prevents that even if root</li>
+	     <li> Must prevent proc mounts not under /proc</li>
+	   </ul>
+	  </div>
+	</section>
+
+	<section>
+	  <h3>Seccomp</h3>
+	  <div>
+	    <ul>
+	      <li> BPF filter at syscall invocation</li>
+	      <li> Can return error, ptrace, SIGSYS</li>
+	      <li> By default reject kexec, module load/unload, open_by_handle_at</li>
+	    </ul>
+	  </div>
+	</section>
+
+        <section>
+          <h3>Image Workflow</h3>
+          <div>
+            <ul>
+              <li class="fragment">Create container based on any existing image or container</li>
+              <li class="fragment">Snapshot (running) containers, publish as images</li>
+              <li class="fragment">All LXD instances are image servers</li>
+              <li class="fragment">Clients can publish private or public images</li>
+            </ul>
+          </div>
+        </section>
+

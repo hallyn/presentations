@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>LXD</title>
+
+    <meta name="author" content="Serge Hallyn">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="reveal.js/css/theme/simple.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+
+    <style>
+      #canonicalLogoIntro {
+        vertical-align: middle;
+        display: inline-block;
+      }
+      #canonicalLogoIntro > img {
+        padding-bottom: 2px;
+        height: 30px;
+        width: auto;
+        border: none;
+        margin: 0;
+        box-shadow: none;
+      }
+
+      #logo {
+        opacity: 0;
+        -webkit-animation: fadein ease-in 1;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-fill-mode: forwards;
+        -webkit-animation-play-state: paused;
+      }
+      #logo > img {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        width: 100px;
+        height: auto;
+      }
+
+      @-webkit-keyframes fadein {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @-webkit-keyframes fadeout {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+
+    </style>
+  </head>
+
+  <body>
+
+    <div id="logo"><img src="oh.png" alt="canonical logo"></img></div>
+
+    <div class="reveal">
+      <div class="slides">
+
+        <section>
+          <img src="lxd.jpg" alt="lxd" style="border: none; box-shadow: none;"></img>
+          <h3>LXD: taking system containers to the next level</h3>
+          <div>
+            <span><a href="http://s3hh.wordpress.com">Serge Hallyn</a> @</span>
+            <span id="canonicalLogoIntro"><img src="canonical.png" alt="Canonical"></img></span>
+            <span>.com</span>
+          </div>
+        </section>
+
+        <section>
+	  <h3 style="color: red"> LXC </h3>
+          <div>
+            <ul>
+	      <li class="fragment roll-in">Container manager
+	        <ul>
+	          <li> first public release in 2008 </li>
+	          <li> drives kernel features to present containers to userspace </li>
+	        </ul>
+	      </li>
+	      <li class="fragment">very configurable
+	      <ul>
+	        <li> flexible sharing with host </li>
+		<li> build containers by hand or with templates </li>
+		<li> stateless </li>
+	      </ul>
+	      </li>
+	      <li class="fragment"> API + bindings (python, go, haskell, lua, ...) </li>
+	      <li class="fragment">host-local, in fact container-local</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+	  <h3 style="color: red"> LXD </h3>
+          <div>
+            <ul>
+	      <li class="fragment roll-in">extend LXC over the network</li>
+	      <li class="fragment">REST API over TLS</li>
+	      <li class="fragment">openstack plugin</li>
+	      <li class="fragment">clean command-line client</li>
+	      <li class="fragment">improved container workflow
+	        <ul>
+		<li>Image based </li>
+		<li>Each full LXD is also an image server</li>
+		<li>Image-only servers (images.linuxcontainers.org)</li>
+		<li>Clients can publish containers/snapshots as private or public images</li>
+		</ul>
+	      </li>
+	      <li class="fragment">secure by default</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+	  <h3 style="color: red"> LXD: the future </h3>
+          <div>
+            <ul>
+	      <li class="fragment roll-in">live migration support</li>
+	      <li class="fragment">API: purposely generic
+	      <ul>
+	        <li> Working with third parties implementing the LXD api</li>
+	      </ul>
+	      </li>
+	      <li class="fragment">remove some current limitations
+	      <ul>
+	        <li> Filesystem mounting </li>
+		<li> Audit </li>
+		<li> LSM stacking </li>
+		<li> Loop </li>
+	      </ul>
+	      </li>
+	      <li class="fragment">Hardware security enforcement</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <img src="lxd.jpg" alt="lxd" style="border: none; box-shadow: none;"></img>
+          <h2>Questions?</h2>
+          <div><a href="https://github.com/lxc/lxd/">github.com/lxc/lxd</a></div>
+          <div><a href="https://github.com/lxc/lxd/tree/master/specs">github.com/lxc/lxd/tree/master/specs</a></div>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="reveal.js/lib/js/head.min.js"></script>
+    <script src="reveal.js/js/reveal.js"></script>
+
+    <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: false,
+        progress: true,
+        history: true,
+        center: true,
+        width: "75%",
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Parallax scrolling
+        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+        // parallaxBackgroundSize: '2100px 900px',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+      Reveal.addEventListener( 'slidechanged', function( event ) {
+        if (!Reveal.isFirstSlide() && !Reveal.isLastSlide()) {
+          document.getElementById('logo').style.webkitAnimation = "fadein 1s running forwards";
+        } else {
+          document.getElementById('logo').style.webkitAnimation = "fadeout 1s running forwards";
+        }
+      });
+
+    </script>
+
+  </body>
+</html>

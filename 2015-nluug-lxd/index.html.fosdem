@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+
+  <head>
+    <meta charset="utf-8">
+
+    <title>LXD</title>
+
+    <meta name="author" content="Serge Hallyn">
+
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <link rel="stylesheet" href="reveal.js/css/reveal.css">
+    <link rel="stylesheet" href="reveal.js/css/theme/simple.css" id="theme">
+
+    <!-- For syntax highlighting -->
+    <link rel="stylesheet" href="reveal.js/lib/css/zenburn.css">
+
+    <!-- If the query includes 'print-pdf', include the PDF print sheet -->
+    <script>
+      if( window.location.search.match( /print-pdf/gi ) ) {
+        var link = document.createElement( 'link' );
+        link.rel = 'stylesheet';
+        link.type = 'text/css';
+        link.href = 'reveal.js/css/print/pdf.css';
+        document.getElementsByTagName( 'head' )[0].appendChild( link );
+      }
+    </script>
+
+    <style>
+      #canonicalLogoIntro {
+        vertical-align: middle;
+        display: inline-block;
+      }
+      #canonicalLogoIntro > img {
+        padding-bottom: 2px;
+        height: 30px;
+        width: auto;
+        border: none;
+        margin: 0;
+        box-shadow: none;
+      }
+
+      #logo {
+        opacity: 0;
+        -webkit-animation: fadein ease-in 1;
+        -webkit-animation-duration: 1s;
+        -webkit-animation-fill-mode: forwards;
+        -webkit-animation-play-state: paused;
+      }
+      #logo > img {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        width: 100px;
+        height: auto;
+      }
+
+      @-webkit-keyframes fadein {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+
+      @-webkit-keyframes fadeout {
+        from { opacity: 1; }
+        to { opacity: 0; }
+      }
+
+    </style>
+  </head>
+
+  <body>
+
+    <div id="logo"><img src="oh.png" alt="canonical logo"></img></div>
+
+    <div class="reveal">
+      <div class="slides">
+
+        <section>
+          <img src="lxd.jpg" alt="lxd" style="border: none; box-shadow: none;"></img>
+          <h3>LXD: The Container Hypervisor</h3>
+          <div>
+            <span><a href="http://s3hh.wordpress.com">Serge Hallyn</a> @</span>
+            <span id="canonicalLogoIntro"><img src="canonical.png" alt="Canonical"></img></span>
+            <span>.com</span>
+          </div>
+        </section>
+
+        <section>
+          <h3> About me (containers-related) </h3>
+          <div>
+	    <ul>
+              <li> Member of Ubuntu server team </li>
+              <li> Upstream lxc (linuxcontainers.org) developer </li>
+	      <li> 1999: DTE kernel patch -> became LSM module </li>
+	      <li> 2003: bsdjail LSM module </li>
+	      <li> 2006: containers </li>
+	    </ul>
+	  </div>
+	</section>
+
+        <section>
+          <h3>Quick Introduction to Containers</h3>
+          <div>
+            <ul>
+		<li>userspace fiction based on diverse kernel features</li>
+		<li>operating system-level virtualization method for running multiple isolated Linux systems (containers) on a single control host.
+		<li>"chroot on steroids"</li>
+		<li>"it's like bsd jails" (or solaris zones)</li>
+		<li>from the inside looks like a vm</li>
+		<li>from the outside looks like processes</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h3>What is <img src="lxd.jpg" alt="lxd" style="border: none; box-shadow: none; height: 1.55em; margin-top: 0px; margin-bottom: -10px;"></img>?</h3>
+          <div>
+            <ul>
+              <li class="fragment">New project under LXC community</li>
+              <li class="fragment">Based on Linux Containers (LXC)</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h3>History of lxc</h3>
+          <div>
+            <ul>
+	      <li class="fragment">pre-2006 - linux-vserver, openvz</li>
+	      <li class="fragment">2006: first (non-mnt) namespace patches</li>
+	      <li class="fragment">2006: lxc as driver for new kernel features</li>
+	      <ul class="fragment">
+	        <li>Some C programs, lots of scripts</li>
+	        <li>Supported container creation</li>
+		<ul>
+	          <li>debootstrap/zypper/etc - required on host</li>
+		  <li>modify rootfs</li>
+		  <li>write config</li>
+	        </ul>
+		<li>Lighter-weight containers supported but not auto-created</li>
+	      </ul>
+	      <li class="fragment">2012: apparmor (selinux in 2013), seccomp, api</li>
+	      <li class="fragment">2013: user namespaces, storage backends</li>
+	      <li class="fragment">2014: download template</li>
+            </ul>
+          </div>
+        </section>
+
+	<section>
+	  <h3>API</h3>
+	<h4>Prior to API, programs had to shell out:</h4>
+	<pre><code data-trim>
+import os
+os.system("lxc-create -t ubuntu -n p1 -- -r precise")
+os.system("sed -i '/aa_profile/d' /var/lib/lxc/p1/config")
+os.system('echo "lxc.aa_profile = unconfined" >> /var/lib/lxc/p1/config')
+os.system('lxc-start -n precise')
+	</code></pre>
+
+	<div class="fragment">
+	<h4>With API:</h4>
+	<pre><code data-trim>
+import lxc
+c = lxc.Container("u1")
+c.create(template="ubuntu", 0, {"release": "precise"})
+c.set_config_item("lxc.aa_profile", "unconfined")
+c.start()
+c.wait("RUNNING", 3)
+	</code></pre>
+	</div>
+
+	<div class="fragment">
+	<h4>Bindings in</h4>
+	  <ul>
+	    <li>Python2, Python3, lua, golang, haskell, ruby</li>
+	  </ul>
+	</div>
+	</section>
+
+        <section>
+          <h3>user namespaces</h3>
+          <div>
+            <ul>
+             <li>Goals:</li>
+                <ul>
+                  <li> uid separation</li>
+                  <li> container root privileged over container</li>
+                  <li> container root has no privilege outside of container</li>
+                </ul>
+              <li>Uids map 1-1 to kuids</li>
+              <li>Other namespaces (i.e. network) owned by userns</li>
+              <li>Privilege over (i.e.) nic require privilege over userns which created it</li>
+            </ul>
+          </div>
+	  <br>
+	  <h2 class="fragment">Summary: root in container is unprivileged on host</h2>
+        </section>
+
+        <section>
+	<h3> Download template </h3>
+	<div>
+	  <ul>
+	    <li> images.linuxcontainers.org = base image repository </li>
+	    <li> "download" template creates containers based on those images </li>
+	    <li class="fragment"> solves bootstrap problem (i.e. debootrap) </li>
+	    <li class="fragment"> solves unprivileged container creation problem </li>
+	  </ul>
+	</div>
+        </section>
+
+        <!-- XXX End of lxc entro -->
+
+        <section>
+          <h3>What is <img src="lxd.jpg" alt="lxd" style="border: none; box-shadow: none; height: 1.55em; margin-top: 0px; margin-bottom: -10px;"></img>?</h3>
+          <div>
+            <ul>
+              <li>New project under LXC community</li>
+              <li>Based on Linux Containers (LXC)</li>
+	        <ul>
+		  <li> Using lxc golang API bindings</li>
+		</ul>
+              <li class="fragment">Secure by default: user namespaces, cgroups, AppArmor, seccomp.</li>
+              <li class="fragment">A daemon that can do hypervisor-y things</li>
+              <li class="fragment">A REST API for managing system containers</li>
+              <li class="fragment">A framework for managing container images</li>
+              <li class="fragment">A new improved command line experience</a>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h3>Command workflow</h3>
+          <div><a href="https://github.com/lxc/lxd/blob/master/specs/command-line-user-experience.md">github.com/lxc/lxd/blob/master/specs/command-line-user-experience.md</a></div>
+	<pre><code data-trim>
+# lxc remote list
+lxd1 <0.0.0.0:8443>
+# lxc remote add lxd2 192.168.122.58:8431
+Certificate fingerprint: 6d d3 07 3c 3f b6 65 55 9a 8e 10 26 f6 d5 1f 3e af 52 2b ff c2 d8 81 90 b2 1c d5 c3 df 25 ae 1b
+ok (y/n)? y
+# lxc list lxd2:
+ v1
+# lxc create images:ubuntu lxd2:v2
+# lxc start lxd2:v2
+# lxc exec lxd2:v2 -- hostname
+ v2
+### v0.2
+# lxc move lxd2:v2 lxd3:v3
+# lxc snapshot c1 c1/20150131 --stateful
+### v0.3
+# lxc publish c1/20150131 myrepo:public/c1-demo --public
+	</code></pre>
+        </section>
+
+        <section>
+          <h3>REST API</h3>
+          <div><a href="https://github.com/lxc/lxd/blob/master/specs/rest-api.md">github.com/lxc/lxd/blob/master/specs/rest-api.md</a></div>
+  <h4> Listing containers </h4>
+<pre><code data-trim>
+GET https://127.0.0.1:8443/1.0/containers
+  (list of urls for all containers)
+</code></pre>
+  <h4> Creating container </h4>
+<pre><code data-trim>
+POST https://127.0.0.1:8443/1.0/containers
+{
+    'name': "my-new-container",
+    'source': {'type': "local",
+               'name': "a/b"},
+}
+  (start container creation, return background operation or error)
+  /1.0/operations/<uuid>
+</code></pre>
+        </section>
+
+        <section>
+          <h3>REST API</h3>
+          <div><a href="https://github.com/lxc/lxd/blob/master/specs/rest-api.md">github.com/lxc/lxd/blob/master/specs/rest-api.md</a></div>
+<pre><code data-trim>
+/
+/1.0
+/1.0/containers
+/1.0/containers/<name>
+/1.0/containers/<name>/exec
+/1.0/containers/<name>/files
+/1.0/containers/<name>/snapshots
+/1.0/containers/<name>/snapshots/<name>
+/1.0/containers/<name>/state
+/1.0/images
+/1.0/images/<name>
+/1.0/events
+/1.0/networks
+/1.0/networks/<name>
+/1.0/operations
+/1.0/operations/<uuid>
+/1.0/operations/<uuid>/wait
+/1.0/operations/<uuid>/websocket
+/1.0/profiles
+/1.0/profiles/<name>
+/1.0/certificates
+/1.0/certificates/<fingerprint>
+</code></pre>
+        </section>
+
+        <section>
+          <h3><img src="lxd.jpg" alt="lxd" style="border: none; box-shadow: none; height: 1.55em; margin-top: 0px; margin-bottom: -10px;"></img> roadmap</h3>
+          <div>
+            <ul>
+              <li class="fragment">0.1 - February 2: basic container management</li>
+              <li class="fragment">0.2 - February 17: live migration, legacy image stores</li>
+              <li class="fragment">0.3 - March 2: local image server, profiles and config rework</li>
+              <li class="fragment">0.4 - March 23: events interface for long-running operations</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <img src="lxd.jpg" alt="lxd" style="border: none; box-shadow: none;"></img>
+          <h2>Questions?</h2>
+          <div><a href="https://github.com/lxc/lxd/">github.com/lxc/lxd</a></div>
+          <div><a href="https://github.com/lxc/lxd/tree/master/specs">github.com/lxc/lxd/tree/master/specs</a></div>
+        </section>
+
+      </div>
+    </div>
+
+    <script src="reveal.js/lib/js/head.min.js"></script>
+    <script src="reveal.js/js/reveal.js"></script>
+
+    <script>
+
+      // Full list of configuration options available here:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        controls: false,
+        progress: true,
+        history: true,
+        center: true,
+        width: "75%",
+
+        theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
+        transition: Reveal.getQueryHash().transition || 'default', // default/cube/page/concave/zoom/linear/fade/none
+
+        // Parallax scrolling
+        // parallaxBackgroundImage: 'https://s3.amazonaws.com/hakim-static/reveal-js/reveal-parallax-1.jpg',
+        // parallaxBackgroundSize: '2100px 900px',
+
+        // Optional libraries used to extend on reveal.js
+        dependencies: [
+          { src: 'reveal.js/lib/js/classList.js', condition: function() { return !document.body.classList; } },
+          { src: 'reveal.js/plugin/markdown/marked.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/markdown/markdown.js', condition: function() { return !!document.querySelector( '[data-markdown]' ); } },
+          { src: 'reveal.js/plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } },
+          { src: 'reveal.js/plugin/zoom-js/zoom.js', async: true, condition: function() { return !!document.body.classList; } },
+          { src: 'reveal.js/plugin/notes/notes.js', async: true, condition: function() { return !!document.body.classList; } }
+        ]
+      });
+
+      Reveal.addEventListener( 'slidechanged', function( event ) {
+        if (!Reveal.isFirstSlide() && !Reveal.isLastSlide()) {
+          document.getElementById('logo').style.webkitAnimation = "fadein 1s running forwards";
+        } else {
+          document.getElementById('logo').style.webkitAnimation = "fadeout 1s running forwards";
+        }
+      });
+
+    </script>
+
+  </body>
+</html>
