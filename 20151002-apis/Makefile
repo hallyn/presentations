@@ -1,5 +1,8 @@
 all: apis.pdf
 
+timeline.pdf: timeline.fig
+	fig2pdf --nogv timeline.fig
+
 %.pdf: %.tex timeline.pdf
 	pdflatex $<
 	pdflatex $<
