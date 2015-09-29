@@ -225,6 +225,19 @@ curl --unix-socket /run/docker.sock \
 \end{itemize}
 \end{frame}
 
+\begin{frame}
+\frametitle{Runc}
+\begin{itemize}
+\item A new way to run OpenContainers format containers
+\item Requires
+  \begin{itemize}
+  \item untarred rootfs
+  \item config.json: mounts (brief), user, env, capabilities, arch
+  \item runtime.json: mounts(details), devices, security, hooks, more
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
 \begin{frame}[fragile]
 \frametitle{LXD REST API}
 \begin{itemize}
@@ -265,26 +278,6 @@ curl --unix-socket /var/lib/lxd/unix.socket http:/1.0
 \end{itemize}
 \end{frame}
 
-\begin{frame}
-\frametitle{Building new tools: libct}
-\begin{itemize}
-\item Libct is focused on creating container drivers
-\item No concept of configuration files or image formats
-\item Assume we create a container with lxc-start or docker,
-\item Run "ps" in the container
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Building new tools: libct}
-{\bf Run container:} \\
-{\tiny
-\begin{lstlisting}
-...
-\end{lstlisting}
-}
-\end{frame}
-
 \begin{frame}[fragile]
 \frametitle{Building new tools: lxd/lxc}
 {\bf Create container in go:} \\
@@ -321,6 +314,44 @@ func create(name, lxcpath string) error {
 \end{lstlisting}
 }
 \end{frame}
+
+\begin{frame}
+\frametitle{Building new tools: libct}
+\begin{itemize}
+\item Libct is focused on creating container drivers
+\item No concept of configuration files or image formats
+\item Intended to be flexible
+  \begin{itemize}
+  \item Any combination of namespace sharing
+  \item Any combination of security features
+  \item Mount as you wish
+  \item \dots you must do it all yourself
+  \end{itemize}
+\item Assume we create a container with lxc-start or docker,
+\item Run "ps" in the container
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Building new tools: libct}
+{\bf Run container:} \\
+{\tiny
+\begin{lstlisting}
+...
+\end{lstlisting}
+}
+\end{frame}
+
+\begin{frame}
+\frametitle{Building new tools: libcontainer}
+\begin{itemize}
+\item Written in go \\
+only usable in go
+\item To use outside of go: {\em runc}
+\end{itemize}
+
+\end{frame}
+
 
 %------------------------------------------------
 
