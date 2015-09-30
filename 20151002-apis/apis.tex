@@ -333,13 +333,124 @@ func create(name, lxcpath string) error {
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Building new tools: libct}
-{\bf Run container:} \\
+\begin{figure}
 {\tiny
-\begin{lstlisting}
-...
-\end{lstlisting}
+  \begin{lstlisting}
+/* Run a full system container as root */
+int main(int argc, char **argv)
+{
+	libct_session_t s;
+	ct_handler_t ct;
+	ct_process_desc_t p;
+	ct_process_t pr;
+	struct ct_net_veth_arg va;
+	ct_net_t nd, peernd;
+	int ret;
+	va.host_name = "hveth0";
+	va.ct_name = "cveth0";
+
+	printf("Setting up session\n");
+	s = libct_session_open_local();
+  printf("Creating in-memory container\n");
+	ct = libct_container_create(s, "t1");
+	p = libct_process_desc_create(s);
+	if (libct_container_set_nsmask(ct,
+   CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWIPC |
+ CLONE_NEWNET | CLONE_NEWUTS)) {
+		printf("Unable to set nsmask\n");
+		return -1;
+	}
+
+	printf("Setting up capabilities\n");
+	/* fixme - get real caplist */
+#define TEST_CAPS 0x1234
+	libct_process_desc_set_caps(p, TEST_CAPS, CAPS_ALLCAPS);
+  \end{lstlisting}
 }
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{figure}
+{\tiny
+  \begin{lstlisting}
+
+	printf("Setting up network\n");
+	nd = libct_net_add(ct, CT_NET_VETH, &va);
+	if (libct_handle_is_err(nd)) {
+		printf("Can't add hostnic\n");
+		return -1;
+	}
+	peernd = libct_net_dev_get_peer(nd);
+	if (libct_handle_is_err(peernd)) {
+		printf("Can't get a veth peer\n");
+		return -1;
+	}
+
+
+	if (libct_net_dev_set_master(peernd, "lxcbr0") < 0) {
+		printf("Can't get set master\n");
+		return -1;
+	}
+
+	printf("setting rootfs\n");
+	if (libct_fs_set_root(ct, "/var/lib/lxc/t1/rootfs")) {
+		printf("Unable to set root\n");
+		return -1;
+	}
+
+	printf("adding filesystems\n");
+	libct_fs_add_mount(ct, "proc", "/proc", 0, "proc", "");
+	libct_fs_add_mount(ct, "sys", "/sys", 0, "sysfs", "");
+  \end{lstlisting}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{figure}
+{\tiny
+  \begin{lstlisting}
+
+	printf("setting up cgroups\n");
+	if (libct_container_set_option(ct, LIBCT_OPT_CGROUP_SUBMOUNT, NULL) < 0) {
+		printf("unable to set cgroup mounts option\n");
+		return -1;
+	}
+	if (libct_controller_add(ct, CTL_DEVICES | CTL_FREEZER) < 0) {
+		printf("unable to add cgroup controllers\n");
+		return -1;
+	}
+
+	printf("setting up apparmor\n");
+	libct_process_desc_set_lsm_label(p, "lxc-container-default");
+
+	printf("Executing init\n");
+	char *newargv[] = {"init", "--debug", NULL};
+	pr = libct_container_spawn_execv(ct, p, "/sbin/init", newargv);
+	if (libct_handle_is_err(pr)) {
+		printf("Unable to start CT\n");
+		return -1;
+	}
+
+	enum ct_state c = libct_container_state(ct);
+	printf("current state is %d\n", (int)c);
+	ret = libct_container_wait(ct);
+	if (ret < 0) {
+		printf("Unable to wait on the CT: %d\n", ret);
+		return -1;
+	}
+
+	libct_container_destroy(ct);
+	libct_session_close(s);
+
+	printf("Container is alive\n");
+	return 0;
+}
+
+  \end{lstlisting}
+}
+\end{figure}
 \end{frame}
 
 \begin{frame}
@@ -347,11 +458,129 @@ func create(name, lxcpath string) error {
 \begin{itemize}
 \item Written in go \\
 only usable in go
-\item To use outside of go: {\em runc}
+\item runc implemented using libcontainer
+\item Re-exec's self for container init
 \end{itemize}
-
 \end{frame}
 
+\begin{frame}[fragile]
+\begin{figure}
+{\tiny
+  \begin{lstlisting}
+package main
+
+import (
+	"fmt"
+	"os"
+	"runtime"
+
+	"github.com/opencontainers/runc/libcontainer"
+	"github.com/opencontainers/runc/libcontainer/configs"
+)
+
+func init() {
+	if len(os.Args) > 1 && os.Args[1] == "init" {
+		runtime.GOMAXPROCS(1)
+		runtime.LockOSThread()
+		factory, _ := libcontainer.New("")
+		if err := factory.StartInitialization(); err != nil {
+			fmt.Printf("Failed init: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Failed init: it returned\n")
+		os.Exit(1)
+	}
+}
+   \end{lstlisting}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{figure}
+{\tiny
+   \begin{lstlisting}
+func main() {
+	config := &configs.Config{
+	    Rootfs: "/home/ubuntu/runc/rootfs",
+	    Capabilities: []string{CAP_SYS_ADMIN}
+	    Namespaces: configs.Namespaces([]configs.Namespace{
+		{Type: configs.NEWNS},
+		{Type: configs.NEWUTS},
+		{Type: configs.NEWIPC},
+		{Type: configs.NEWPID},
+		{Type: configs.NEWNET},
+	    }),
+	    Mounts: []*configs.Mount{
+	        {
+		   Source: "proc",
+		   Destination: "/proc",
+		   Device: "proc",
+		},
+	    },
+	    Cgroups: &configs.Cgroup{
+		Name:            "test-container",
+		Parent:          "system",
+		AllowAllDevices: false,
+		AllowedDevices:  configs.DefaultAllowedDevices,
+	    },
+
+	    Devices:  configs.DefaultAutoCreatedDevices,
+	    Hostname: "testing",
+	    Networks: []*configs.Network{
+		{
+		    Type:    "loopback",
+		    Address: "127.0.0.1/0",
+		    Gateway: "localhost",
+		},
+	    },
+	}
+}
+   \end{lstlisting}
+}
+\end{figure}
+\end{frame}
+
+\begin{frame}[fragile]
+\begin{figure}
+{\tiny
+   \begin{lstlisting}
+
+	factory, err := libcontainer.New("/home/ubuntu/runc", libcontainer.InitArgs(os.Args[0], "init"))
+	if err != nil {
+		fmt.Printf("loading libcontainer factory failed: %s\n", err)
+		os.Exit(1)
+	}
+	container, err := factory.Create("serue", config)
+	if err != nil {
+		fmt.Printf("factory.Load failed: %s\n", err)
+		os.Exit(1)
+	}
+
+	process := &libcontainer.Process{
+		Args: []string{"/bin/bash"},
+		Env: []string{"PATH=/bin:/usr/bin:/sbin:/usr/sbin"},
+		User: "0:0",
+		Cwd: "/",
+		Stdin: os.Stdin,
+		Stdout: os.Stdout,
+		Stderr: os.Stderr,
+	}
+	if err := container.Start(process); err != nil {
+		os.Exit(1)
+	}
+	status, err := process.Wait()
+	if err != nil {
+		fmt.Printf("Error waiting: %s (status %v)\n", err, status)
+		os.Exit(1)
+	}
+	fmt.Printf("At end: status is %v\n", status)
+	container.Destroy()
+}
+  \end{lstlisting}
+}
+\end{figure}
+\end{frame}
 
 %------------------------------------------------
 
