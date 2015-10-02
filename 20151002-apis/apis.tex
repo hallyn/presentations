@@ -120,64 +120,16 @@ Canonical, Ltd \\ % Your institution for the title page
   \begin{itemize}
   \item Download an image
   \item Run a command in a container
+  \item query images and containers
   \item Publish the new image
   \end{itemize}
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Regular Usage: Docker}
-\begin{itemize}
-\item docker pull ubuntu
-\item docker run -i -t ubuntu /usr/bin/touch cd
-\item docker ps -a
-{\tiny
-\begin{verbatim}
-ef45ea2cf7da        ubuntu:latest       "/usr/bin/touch cd"   10 seconds ago
-d7bd5a48055f        ubuntu:latest       "/bin/bash"           19 hours ago
-\end{verbatim}
-}
-
-\item docker run -i -it ubuntu /bin/ls
-\item docker commit -m "add ab" f57b28609407 ubuntu:ab
-{\tiny
-\verb@f68322852844620ea3a0ee9fc86ae7f2016f344d031e80a5331fffaa8efcf61c@
-}
-
-\item sudo docker images
-{\tiny
-\begin{verbatim}
-REPOSITORY          TAG                 IMAGE ID            CREATED             VIRTUAL SIZE
-ubuntu              cd                  f68322852844        21 seconds ago      188.3 MB
-ubuntu              latest              91e54dfb1179        4 weeks ago         188.3 MB
-\end{verbatim}
-}
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Regular Usage: LXD}
-\begin{itemize}
-\item lxc image list lxc:
-\item lxc launch lxc:ubuntu/trusty/amd64 u1
-\item lxc image list
-\item lxc list
-\item lxc exec u1 -- /usr/bin/touch/cd
-\item lxc stop u1
-\item lxc publish u1 myrepo:ubuntucd
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Regular Usage: LXC}
-\begin{itemize}
-\item lxc-create -t download -n w1 -- -d ubuntu -r wily -a amd64
-\item lxc-ls -f
-\item lxc-start -n u1
-\item lxc-attach -n u1 -- touch /cd
-\item lxc-stop -n u1
-\item lxc-clone -s -o u1 -n u2
-\item \texttt{Not image-based - no `publish' concept}
+\item Demos
+  \begin{itemize}
+  \item docker
+  \item lxd
+  \item lxc
+  \item libct
+  \end{itemize}
 \end{itemize}
 \end{frame}
 
@@ -186,42 +138,16 @@ ubuntu              latest              91e54dfb1179        4 weeks ago         
 \begin{itemize}
 \item Getting familiar with the commands is important
 \item Docker and LXD have REST APIs
-\item Go further building custom tools against library APIs
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Docker REST API}
-\begin{itemize}
-\item List Images: \\
-curl --unix-socket /run/docker.sock http:/images/json
-\item Create a container: \\
-\begin{lstlisting}
-curl --unix-socket /run/docker.sock \
-  -H "Content-Type: application/json" \
-  -X POST http:/containers/create \
-  -d '{ "Image": "ubuntu:latest", \
-  "ExposedPorts":{"22/tcp":{}} , \
-  "Binds": ["/home/ubuntu:/opt"], \
-  "Entrypoint": "/sbin/init"}' \\
-\end{lstlisting}
-  \vspace{0.25in}
-\textbf{ {"Id":"3b7e4b7aa...","Warnings":null} } \\
-
-\item Start the container: \\
-curl --unix-socket /run/docker.sock \
-  -X POST http:/containers/ID/start \
-  -d '{ "Binds":["/home/serge:/opt"] }'
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-\begin{itemize}
-\item curl --unix-socket /run/docker.sock -X GET http:/containers/json
-\item curl --unix-socket /run/docker.sock -X POST http:/containers/ID/stop
-\item curl --unix-socket /run/docker.sock -X DELETE  http:/containers/ID
-\item curl --unix-socket /run/docker.sock -X DELETE  http:/containers/log
-\item curl --unix-socket /run/docker.sock -X GET http:/containers/ID/logs?stdout=1
+  \begin{itemize}
+  \item Docker
+    \begin{itemize}
+    \item 
+    \end{itemize}
+  \item LXD
+    \begin{itemize}
+    \item 
+    \end{itemize}
+  \end{itemize}
 \end{itemize}
 \end{frame}
 
@@ -229,6 +155,7 @@ curl --unix-socket /run/docker.sock \
 \frametitle{Runc}
 \begin{itemize}
 \item A new way to run OpenContainers format containers
+\item (Usable from other languages - which go pkgs are not)
 \item Requires
   \begin{itemize}
   \item untarred rootfs
@@ -238,349 +165,24 @@ curl --unix-socket /run/docker.sock \
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-\frametitle{LXD REST API}
-\begin{itemize}
-\item List images: \\
-{\tiny
-  \begin{lstlisting}
-curl --unix-socket /var/lib/lxd/unix.socket http:/1.0
-  \end{lstlisting}
-}
-
-%\end{itemize}
-%\end{frame}
-%
-%\begin{frame}[fragile]
-%\begin{itemize}
-%\item Create container: \\
-%{\tiny
-%  \begin{lstlisting}
-%curl --unix-socket /var/lib/lxd/unix.socket http:/1.0/containers \
-%  -X POST -d '{  "name":"x1", "source":{"type":"image","alias":"ubuntu" } }'
-%  \end{lstlisting}
-%}
-%
-%{\tiny
-%\begin[verbatim}
-%{"type":"async","status":"OK",
-%"status_code":100,
-%"operation":"/1.0/operations/e8b807a6-e19a-4cfe-ad69-2069ecaec14a",
-%"resources":{"containers":["/1.0/containers/x1"]},
-%"metadata":null}
-%\end{verbatim}
-%}
-
-\item All documented at: \\
-{\tiny
-\url{https://github.com/lxc/lxd/blob/master/specs/rest-api.md}
-}
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Building new tools: lxd/lxc}
-{\bf Create container in go:} \\
-{\tiny
-\begin{lstlisting}
-func create(name, lxcpath string) error {
-  c, err := lxc.NewContainer(name, lxcpath)
-  if err != nil {
-    return err
-  }
-  options := lxc.TemplateOptions{
-    Template:             "download",
-    Distro:               "ubuntu",
-    Release:              "trusty",
-    Arch:                 "amd64",
-    FlushCache:           false,
-    DisableGPGValidation: false,
-  }
-  err = c.Create(options)
-  return err
-\end{lstlisting}
-}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Building new tools: lxd/lxc}
-{\bf Get state of running container in python:} \\
-{\tiny
-\begin{lstlisting}
->>> import lxc
->>> c=lxc.Container("x1", "/var/run/lxd/containers")
->>> c.state
-"RUNNING"
-\end{lstlisting}
-}
-\end{frame}
-
 \begin{frame}
-\frametitle{Building new tools: libct}
+\frametitle{Building new tools}
 \begin{itemize}
-\item Libct is focused on creating container drivers
-\item No concept of configuration files or image formats
-\item Intended to be flexible
+\item libcontainer
   \begin{itemize}
-  \item Any combination of namespace sharing
-  \item Any combination of security features
-  \item Mount as you wish
-  \item \dots you must do it all yourself
+  \item 
   \end{itemize}
-\item Assume we create a container with lxc-start or docker,
-\item Run "ps" in the container
+\item libct
+  \begin{itemize}
+  \item 
+  \end{itemize}
+\item LXD/LXC
+  \begin{itemize}
+  \item 
+  \end{itemize}
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-\begin{figure}
-{\tiny
-  \begin{lstlisting}
-/* Run a full system container as root */
-int main(int argc, char **argv)
-{
-	libct_session_t s;
-	ct_handler_t ct;
-	ct_process_desc_t p;
-	ct_process_t pr;
-	struct ct_net_veth_arg va;
-	ct_net_t nd, peernd;
-	int ret;
-	va.host_name = "hveth0";
-	va.ct_name = "cveth0";
-
-	printf("Setting up session\n");
-	s = libct_session_open_local();
-  printf("Creating in-memory container\n");
-	ct = libct_container_create(s, "t1");
-	p = libct_process_desc_create(s);
-	if (libct_container_set_nsmask(ct,
-   CLONE_NEWPID | CLONE_NEWNS | CLONE_NEWIPC |
- CLONE_NEWNET | CLONE_NEWUTS)) {
-		printf("Unable to set nsmask\n");
-		return -1;
-	}
-
-	printf("Setting up capabilities\n");
-	/* fixme - get real caplist */
-#define TEST_CAPS 0x1234
-	libct_process_desc_set_caps(p, TEST_CAPS, CAPS_ALLCAPS);
-  \end{lstlisting}
-}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\begin{figure}
-{\tiny
-  \begin{lstlisting}
-
-	printf("Setting up network\n");
-	nd = libct_net_add(ct, CT_NET_VETH, &va);
-	if (libct_handle_is_err(nd)) {
-		printf("Can't add hostnic\n");
-		return -1;
-	}
-	peernd = libct_net_dev_get_peer(nd);
-	if (libct_handle_is_err(peernd)) {
-		printf("Can't get a veth peer\n");
-		return -1;
-	}
-
-
-	if (libct_net_dev_set_master(peernd, "lxcbr0") < 0) {
-		printf("Can't get set master\n");
-		return -1;
-	}
-
-	printf("setting rootfs\n");
-	if (libct_fs_set_root(ct, "/var/lib/lxc/t1/rootfs")) {
-		printf("Unable to set root\n");
-		return -1;
-	}
-
-	printf("adding filesystems\n");
-	libct_fs_add_mount(ct, "proc", "/proc", 0, "proc", "");
-	libct_fs_add_mount(ct, "sys", "/sys", 0, "sysfs", "");
-  \end{lstlisting}
-}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\begin{figure}
-{\tiny
-  \begin{lstlisting}
-
-	printf("setting up cgroups\n");
-	if (libct_container_set_option(ct, LIBCT_OPT_CGROUP_SUBMOUNT, NULL) < 0) {
-		printf("unable to set cgroup mounts option\n");
-		return -1;
-	}
-	if (libct_controller_add(ct, CTL_DEVICES | CTL_FREEZER) < 0) {
-		printf("unable to add cgroup controllers\n");
-		return -1;
-	}
-
-	printf("setting up apparmor\n");
-	libct_process_desc_set_lsm_label(p, "lxc-container-default");
-
-	printf("Executing init\n");
-	char *newargv[] = {"init", "--debug", NULL};
-	pr = libct_container_spawn_execv(ct, p, "/sbin/init", newargv);
-	if (libct_handle_is_err(pr)) {
-		printf("Unable to start CT\n");
-		return -1;
-	}
-
-	enum ct_state c = libct_container_state(ct);
-	printf("current state is %d\n", (int)c);
-	ret = libct_container_wait(ct);
-	if (ret < 0) {
-		printf("Unable to wait on the CT: %d\n", ret);
-		return -1;
-	}
-
-	libct_container_destroy(ct);
-	libct_session_close(s);
-
-	printf("Container is alive\n");
-	return 0;
-}
-
-  \end{lstlisting}
-}
-\end{figure}
-\end{frame}
-
-\begin{frame}
-\frametitle{Building new tools: libcontainer}
-\begin{itemize}
-\item Written in go \\
-only usable in go
-\item runc implemented using libcontainer
-\item Re-exec's self for container init
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\begin{figure}
-{\tiny
-  \begin{lstlisting}
-package main
-
-import (
-	"fmt"
-	"os"
-	"runtime"
-
-	"github.com/opencontainers/runc/libcontainer"
-	"github.com/opencontainers/runc/libcontainer/configs"
-)
-
-func init() {
-	if len(os.Args) > 1 && os.Args[1] == "init" {
-		runtime.GOMAXPROCS(1)
-		runtime.LockOSThread()
-		factory, _ := libcontainer.New("")
-		if err := factory.StartInitialization(); err != nil {
-			fmt.Printf("Failed init: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Printf("Failed init: it returned\n")
-		os.Exit(1)
-	}
-}
-   \end{lstlisting}
-}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\begin{figure}
-{\tiny
-   \begin{lstlisting}
-func main() {
-	config := &configs.Config{
-	    Rootfs: "/home/ubuntu/runc/rootfs",
-	    Capabilities: []string{CAP_SYS_ADMIN}
-	    Namespaces: configs.Namespaces([]configs.Namespace{
-		{Type: configs.NEWNS},
-		{Type: configs.NEWUTS},
-		{Type: configs.NEWIPC},
-		{Type: configs.NEWPID},
-		{Type: configs.NEWNET},
-	    }),
-	    Mounts: []*configs.Mount{
-	        {
-		   Source: "proc",
-		   Destination: "/proc",
-		   Device: "proc",
-		},
-	    },
-	    Cgroups: &configs.Cgroup{
-		Name:            "test-container",
-		Parent:          "system",
-		AllowAllDevices: false,
-		AllowedDevices:  configs.DefaultAllowedDevices,
-	    },
-
-	    Devices:  configs.DefaultAutoCreatedDevices,
-	    Hostname: "testing",
-	    Networks: []*configs.Network{
-		{
-		    Type:    "loopback",
-		    Address: "127.0.0.1/0",
-		    Gateway: "localhost",
-		},
-	    },
-	}
-}
-   \end{lstlisting}
-}
-\end{figure}
-\end{frame}
-
-\begin{frame}[fragile]
-\begin{figure}
-{\tiny
-   \begin{lstlisting}
-
-	factory, err := libcontainer.New("/home/ubuntu/runc", libcontainer.InitArgs(os.Args[0], "init"))
-	if err != nil {
-		fmt.Printf("loading libcontainer factory failed: %s\n", err)
-		os.Exit(1)
-	}
-	container, err := factory.Create("serue", config)
-	if err != nil {
-		fmt.Printf("factory.Load failed: %s\n", err)
-		os.Exit(1)
-	}
-
-	process := &libcontainer.Process{
-		Args: []string{"/bin/bash"},
-		Env: []string{"PATH=/bin:/usr/bin:/sbin:/usr/sbin"},
-		User: "0:0",
-		Cwd: "/",
-		Stdin: os.Stdin,
-		Stdout: os.Stdout,
-		Stderr: os.Stderr,
-	}
-	if err := container.Start(process); err != nil {
-		os.Exit(1)
-	}
-	status, err := process.Wait()
-	if err != nil {
-		fmt.Printf("Error waiting: %s (status %v)\n", err, status)
-		os.Exit(1)
-	}
-	fmt.Printf("At end: status is %v\n", status)
-	container.Destroy()
-}
-  \end{lstlisting}
-}
-\end{figure}
-\end{frame}
 
 %------------------------------------------------
 
