@@ -136,18 +136,33 @@ Canonical, Ltd \\ % Your institution for the title page
 \begin{frame}
 \frametitle{Digging Deeper}
 \begin{itemize}
-\item Getting familiar with the commands is important
-\item Docker and LXD have REST APIs
-  \begin{itemize}
+  \item Getting familiar with the commands is important
+  \item Docker and LXD have REST APIs
   \item Docker
+
     \begin{itemize}
-    \item 
+      \item locally use /run/docker.sock unix socket
+      \item examples:
+        \begin{itemize}
+          \item example: http:/images/json
+          \item example: http:/containers/ID/start
+          \item $\ldots$
+        \end{itemize}
     \end{itemize}
+
   \item LXD
+
     \begin{itemize}
-    \item 
+      \item locally use /var/lib/lxd/unix.socket
+      \item endpoints:
+        \begin{itemize}
+          \item /1.0
+          \item /1.0/images
+          \item /1.0/containers
+          \item $\ldots$
+        \end{itemize}
     \end{itemize}
-  \end{itemize}
+
 \end{itemize}
 \end{frame}
 
@@ -170,15 +185,21 @@ Canonical, Ltd \\ % Your institution for the title page
 \begin{itemize}
 \item libcontainer
   \begin{itemize}
-  \item 
+  \item Written in go
+  \item Focus on driving docker containers
   \end{itemize}
 \item libct
   \begin{itemize}
-  \item 
+  \item Designed to implement container drivers
+  \item Written in C
+  \item Bindings in python and go
   \end{itemize}
 \item LXD/LXC
   \begin{itemize}
-  \item 
+  \item Designed around LXC containers
+  \item Basis for LXD
+  \item Written in C
+  \item Bindings in many languages
   \end{itemize}
 \end{itemize}
 \end{frame}
