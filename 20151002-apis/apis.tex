@@ -107,6 +107,19 @@ Canonical, Ltd \\ % Your institution for the title page
 \titlepage % Print the title page as the first slide
 \end{frame}
 
+%\begin{frame}
+%\frametitle{What is a container?}
+%\begin{itemize}
+%\item A distro-agnostic, efficient format for packaging applications
+%\item A way to run isolated applications
+%\item A way to run distributions within distributions
+%\item A set of tasks running with cgroup limitations
+%\end{itemize}
+%
+%\end{frame}
+
+
+
 \begin{frame}
 \begin{figure}
   \includegraphics[width=\textwidth]{timeline.pdf}
@@ -125,9 +138,9 @@ Canonical, Ltd \\ % Your institution for the title page
   \end{itemize}
 \item Demos
   \begin{itemize}
-  \item docker
-  \item lxd
   \item lxc
+  \item lxd
+  \item docker
   \item libct
   \end{itemize}
 \end{itemize}
@@ -138,17 +151,6 @@ Canonical, Ltd \\ % Your institution for the title page
 \begin{itemize}
   \item Getting familiar with the commands is important
   \item Docker and LXD have REST APIs
-  \item Docker
-
-    \begin{itemize}
-      \item locally use /run/docker.sock unix socket
-      \item examples:
-        \begin{itemize}
-          \item example: http:/images/json
-          \item example: http:/containers/ID/start
-        \end{itemize}
-      \item \url{https://docs.docker.com/reference/api/docker_remote_api/}
-    \end{itemize}
 
   \item LXD
 
@@ -161,6 +163,18 @@ Canonical, Ltd \\ % Your institution for the title page
           \item /1.0/containers
         \end{itemize}
         \item \url{https://github.com/lxc/lxd/blob/master/specs/rest-api.md}
+    \end{itemize}
+
+  \item Docker
+
+    \begin{itemize}
+      \item locally use /run/docker.sock unix socket
+      \item examples:
+        \begin{itemize}
+          \item example: http:/images/json
+          \item example: http:/containers/ID/start
+        \end{itemize}
+      \item \url{https://docs.docker.com/reference/api/docker_remote_api/}
     \end{itemize}
 
 \end{itemize}
@@ -184,6 +198,14 @@ Canonical, Ltd \\ % Your institution for the title page
 \begin{frame}
 \frametitle{Building new tools}
 \begin{itemize}
+\item LXD/LXC
+  \begin{itemize}
+  \item Designed around LXC containers
+  \item Basis for LXD
+  \item Written in C
+  \item Bindings in python, go, haskell, lua, ruby, $\ldots$
+  \item \url{github.com/lxc/lxc}
+  \end{itemize}
 \item libcontainer
   \begin{itemize}
   \item Written in go
@@ -196,14 +218,6 @@ Canonical, Ltd \\ % Your institution for the title page
   \item Written in C
   \item Bindings in python and go
   \item \url{github.com/xemul/libct}
-  \end{itemize}
-\item LXD/LXC
-  \begin{itemize}
-  \item Designed around LXC containers
-  \item Basis for LXD
-  \item Written in C
-  \item Bindings in many languages
-  \item \url{github.com/lxc/lxc}
   \end{itemize}
 \end{itemize}
 \end{frame}
