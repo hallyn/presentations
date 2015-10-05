@@ -1,0 +1,15 @@
+LXD_CONF=~/.config/lxc
+alias lxdcurl="curl -k -s --cert "${LXD_CONF}/client.crt" --key "${LXD_CONF}/client.key" --unix-sock /var/lib/lxd/unix.socket"
+alias lxdcurl="curl --unix-sock /var/lib/lxd/unix.socket"
+
+lxdcurl http:/1.0
+lxdcurl http:/1.0/images
+lxdcurl http:/1.0/containers
+lxdcurl -X POST http:/1.0/containers -d '{"name":"x1", "source": {"type":"image","alias":"trusty"} }'
+export OP=(operation url)
+lxdcurl -X GET http:/1.0/operations/$OP
+lxdcurl -H "Content-Type: application/json"   -X PUT -d '{"action":"start"}' http:/1.0/containers/x1/state
+export OP=(operation url)
+lxdcurl http:/1.0/operations/$OP
+lxc list
+lxdcurl -X POST http:/1.0/containers -d '{"name":"x2","source":{"type":"copy","source":"x1"} }'

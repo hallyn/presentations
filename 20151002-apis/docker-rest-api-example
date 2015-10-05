@@ -1,0 +1,12 @@
+curl --unix-socket /run/docker.sock -X GET http:/containers/json?all=1
+mkdir $HOME/opt
+touch $HOME/opt/helloworld
+curl --unix-socket /run/docker.sock -H "Content-Type: application/json"
+    -X POST http:/containers/create    -d '{ "Image": "ubuntu:latest",
+        "Binds": ["$HOME/opt:/mnt:ro"], "Cmd":["/bin/ls", "/mnt"]}'
+
+export ID=[id fro mlast command]
+curl --unix-socket /run/docker.sock -H "Content-Type: application/json" -X POST http:/containers/$ID/start
+curl --unix-socket /run/docker.sock -X GET http:/containers/$ID/logs?stdout=1
+curl --unix-socket /run/docker.sock -H "Content-Type: application/json" -X POST http:/containers/$ID/stop
+curl --unix-socket /run/docker.sock -H "Content-Type: application/json" -X DELETE http:/containers/$ID
