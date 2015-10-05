@@ -1,0 +1,8 @@
+docker pull ubuntu
+docker run -i -t ubuntu bash
+ # touch ab
+ # exit
+docker ps -a
+docker commit -m "add ab" <container-id>
+docker images
+docker tag <container-id> localrepo:5555/ab

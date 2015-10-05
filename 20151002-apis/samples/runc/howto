@@ -1,0 +1,4 @@
+docker export -o out.tar <container-id>
+mkdir rootfs
+tar -C rootfs -xf out.tar
+rund start -c config.json -r runtime.json
