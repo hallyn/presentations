@@ -1,0 +1,250 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%    PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+%\usetheme{Boadilla}
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+%\usecolortheme{beaver}
+%\usecolortheme{beetle}
+%\usecolortheme{crane}
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+\usecolortheme{seahorse}
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+%----------------------------------------------------------------------------------------
+%    TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[LXCFS]{Not just for LXC anymore} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Serge Hallyn} % Your name
+\date{\today} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}
+\frametitle{Overview} % Table of contents slide, comment this block out to remove it
+\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Cgmanager}
+	\begin{itemize}
+	\item Central cgroup manager
+	\item Goals
+		\begin{itemize}
+		\item Simplify container manager code \
+			Ignore questions of mountpoints
+		\item Delegate cgroups to users
+		\item Support unprivileged, nested containers
+		\end{itemize}
+	\item DBus interface
+		\begin{itemize}
+		\item Simplify integration
+		\item Built on libnih
+		\end{itemize}
+\pause
+
+	\item Cgmanager started aging
+	\item Libnih aging
+	\item Systemd in containers
+		\begin{itemize}
+		\item Systemd requires cgroupfs interface
+		\item Wants to believe it owns cgroups
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Enter lxcfs}
+	\begin{itemize}
+	\item FUSE filesystem
+	\item Cgroupfs virtualization
+		\begin{itemize}
+		\item Over cgmanager DBus interface \\
+			\ldots Over cgroupfs virtual fs \\
+			\ldots over cgroup kernel feature
+		\item Worked - but performance cost became high
+		\pause
+		\item Drop cgmanager, use own native cgroupfs mountsk
+		\pause
+		\item Finally obsolete - cgroup namespaces
+		\end{itemize}
+	\pause
+	\item Procfs virtualization
+		\begin{itemize}
+		\item Done years ago by dlezcano
+		\item Done for for years by libvirt
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Other Proc virtualization options}
+\begin{itemize}
+\item kernel /proc virtualization
+	\begin{itemize}
+	\item Deemed unacceptable for years
+	\item Might be acceptable as a {\bf new} procfs
+	\end{itemize}
+\item libresource
+	\begin{itemize}
+	\item Some community interest
+	\item Did not gain traction
+	\item High bar to usefulness - need to
+		\begin{itemize}
+		\item design a useful API
+		\item adapt existing tools (procps, top, etc)
+		\end{itemize}
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Other FUSE based proc virtualization}
+	\begin{itemize}
+	\item libvirt
+	\item cgroupfs
+		\begin{itemize}
+		\item written in go
+		\item supports cpuinfo, diskstats, meminfo, stat
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{LXCFS features}
+	\begin{itemize}
+	\item Cgroup virtualization and delegation (obsolete)
+	\item Proc virtualization:
+		\begin{itemize}
+		\item cpuinfo
+		\item meminfo
+		\item stat
+		\item uptime
+		\item diskstats
+		\item swaps
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Requested features}
+	\begin{itemize}
+	\item support {\tt /sys/devices/system/cpu}
+	\item loadavg
+		\begin{itemize}
+		\item Problem - seems to require polling and tracking data
+		\item Could benefit from new kernel support
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Bugs}
+	\begin{itemize}
+	\item ram reported incorrect
+	\item swapfree incorrect
+	\item ps ux returns no btime in {\tt /proc/stat}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{How to use (and demo)}
+\begin{itemize}
+\item Run lxcfs \\
+{\tt lxcfs /var/lib/lxcfs}
+\item Mount lxcfs into containers at container startup
+	\begin{itemize}
+	\item lxd - automatic
+	\item lxc - {\tt /usr/share/lxc/config/common.conf.d/00-lxcfs.conf}
+	\end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{LXCFS gotchas}
+	\begin{itemize}
+	\item Maintaining lxcfs container mounts across security upgrades
+	\item Private cgroup mounts
+	\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\end{document} 

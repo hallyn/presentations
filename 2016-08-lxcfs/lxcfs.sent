@@ -1,0 +1,77 @@
+LXCFS - Not just for LXC anymore
+
+cgmanager
+* central cgroup manager
+* Goals
+  * Simplify container manager code
+    Ignore questions of mountpoints
+  * Delegate cgroups to users
+  * Support unprivileged, nested containers
+* DBus interface
+  * Simplify integration
+  * Built on libnih
+
+cgmanager aging
+* Libnih abandoned
+* Systemd in containers
+  * Systemd requires cgroupfs interface
+  * Wants to believe it owns cgroups
+
+Enter lxcfs
+* FUSE filesystem
+  * Cgroupfs virtualization
+    * Over cgmanager DBus interface
+      * Over cgroupfs virtual fs
+        * over cgroup kernel feature
+      * Trust cgmanager to safely delegate
+    * Worked - but performance cost became high
+    * Drop cgmanager, use own native cgroupfs mounts
+    * Finally obsolete - cgroup namespaces
+
+Enter lxcfs (2)
+  * Procfs virtualization
+    * Done years ago by dlezcano
+    * Done for for years by libvirt
+
+Other Proc virtualization options
+* kernel /proc virtualization
+  * Deemed unacceptable for years
+  * Might be acceptable as a *new* procfs
+* libresource
+  * Some community interest
+  * Did not gain traction
+  * High bar to usefulness - need to
+    * design a useful API
+    * adapt existing tools (procps, top, etc)
+
+Other FUSE based proc virtualization
+* libvirt
+* cgroupfs (written in go)
+
+Current features
+* Cgroup virtualization (obsolete)
+* Proc virtualization:
+  * cpuinfo
+  * meminfo
+  * stat
+  * uptime
+  * diskstats
+  * swaps
+
+Requested features
+* support /sys/devices/system/cpu
+* loadavg
+  * Problem - seems to require polling and tracking data
+  * Could benefit from new kernel support
+
+Bugs
+* ram reported incorrect
+* swapfree incorrect
+* ps ux returns no btime in /proc/stat
+
+How to use
+* Run lxcfs
+  # lxcfs /var/lib/lxcfs
+* Mount lxcfs into containers at container startup
+
+Demo
