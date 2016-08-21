@@ -19,6 +19,8 @@
 
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{color}
 
 \mode<presentation> {
 
@@ -224,17 +226,26 @@
 	\end{itemize}
 \end{frame}
 
+\lstset{language=bash}
+
 \begin{frame}
-\frametitle{How to use (and demo)}
+\frametitle{How to use}
 \begin{itemize}
-\item Run lxcfs \\
-{\tt lxcfs /var/lib/lxcfs}
+\item Run lxcfs: {\tt lxcfs /var/lib/lxcfs}
+
 \item Mount lxcfs into containers at container startup
 	\begin{itemize}
 	\item lxd - automatic
 	\item lxc - {\tt /usr/share/lxc/config/common.conf.d/00-lxcfs.conf}
+	\item docker - map files with -v (requires very recent patch)
 	\end{itemize}
 \end{itemize}
+
+\newpage
+
+{\tiny
+\lstinputlisting{dockerrun.sh}
+}
 \end{frame}
 
 \begin{frame}
