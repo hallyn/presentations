@@ -91,6 +91,7 @@
 \title[LXCFS]{Not just for LXC anymore} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Serge Hallyn} % Your name
+\institute{LXC project}
 \date{\today} % Date, can be changed to a custom date
 
 \begin{document}
@@ -99,9 +100,15 @@
 \titlepage % Print the title page as the first slide
 \end{frame}
 
-\begin{frame}
-\frametitle{Overview} % Table of contents slide, comment this block out to remove it
-\tableofcontents % Throughout your presentation, if you choose to use \section{} and \subsection{} commands, these will automatically be printed on this slide as an overview of your presentation
+\begin{frame}[fragile]
+\frametitle{About me}
+\begin{itemize}
+\item 2003 - bsdjail
+\item 2005 - containers
+\item 2010 - lxc
+\item (end of) 2013 - cgmanager, unprivileged containers
+\item (end of) 2014 - lxcfs
+\end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -113,7 +120,7 @@
 		\item Simplify container manager code \
 			Ignore questions of mountpoints
 		\item Delegate cgroups to users
-		\item Support unprivileged, nested containers
+		\item Safely support unprivileged, nested containers
 		\end{itemize}
 	\item DBus interface
 		\begin{itemize}
@@ -122,12 +129,12 @@
 		\end{itemize}
 \pause
 
-	\item Cgmanager started aging
-	\item Libnih aging
+	%\item Cgmanager started aging
+	%\item Libnih aging
 	\item Systemd in containers
 		\begin{itemize}
-		\item Systemd requires cgroupfs interface
-		\item Wants to believe it owns cgroups
+		\item Systemd wants to believe it owns cgroups
+		\item Requires cgroupfs interface
 		\end{itemize}
 	\end{itemize}
 \end{frame}
@@ -157,6 +164,11 @@
 \end{frame}
 
 \begin{frame}
+\frametitle{Basic design}
+\includegraphics[width=\textwidth]{lxcfs.png}
+\end{frame}
+
+\begin{frame}
 \frametitle{Other Proc virtualization options}
 \begin{itemize}
 \item kernel /proc virtualization
@@ -180,10 +192,22 @@
 \begin{frame}
 \frametitle{Other FUSE based proc virtualization}
 	\begin{itemize}
+	\item original lxc approach
+		\begin{itemize}
+		\item since 2008
+		\item no longer compiles
+		\item never really tested/supported
+		\end{itemize}
 	\item libvirt
+		\begin{itemize}
+		\item since 2012
+		\item not a standalone project
+		\item only supports meminfo
+		\end{itemize}
 	\item cgroupfs
 		\begin{itemize}
 		\item written in go
+		\item standalone, works in docker
 		\item supports cpuinfo, diskstats, meminfo, stat
 		\end{itemize}
 	\end{itemize}
@@ -249,11 +273,35 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{LXCFS gotchas}
+\frametitle{Design choices}
 	\begin{itemize}
 	\item Maintaining lxcfs container mounts across security upgrades
+		\begin{itemize}
+		\item Do not restart on upgrades
+		\item Dlopen private library on each operation
+		\item Reload under lock after SIGUSR1 handler
+		\end{itemize}
 	\item Private cgroup mounts
+		\begin{itemize}
+		\item Don't confuse docker, libvirt with our mounts
+		\item Don't pin any host mounts in our namespace
+		\item Slightly different solution from cgmanager:
+			\begin{itemize}
+			\item Open sparse namespace
+			\item Keep open fd for each mounted controller dir.
+			\end{itemize}
+		\end{itemize}
 	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Questions/Comments?}
+\begin{itemize}
+\item {\url http://linuxcontainers.org}
+\item {\url http://github.com/lxc/lxcfs}
+\item {\tt lxc-\{users,devel\}@lists.linuxcontainers.org}
+\item serge@hallyn.com
+\end{itemize}
 \end{frame}
 
 %------------------------------------------------
