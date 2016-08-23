@@ -169,6 +169,28 @@
 \end{frame}
 
 \begin{frame}
+\frametitle{Issues}
+	\begin{itemize}
+	\item Maintaining lxcfs container mounts across security upgrades
+		\begin{itemize}
+		\item Do not restart on upgrades
+		\item Dlopen private library on each operation
+		\item Reload under lock after SIGUSR1 handler
+		\end{itemize}
+	\item Private cgroup mounts
+		\begin{itemize}
+		\item Don't confuse docker, libvirt with our mounts
+		\item Don't pin any host mounts in our namespace
+		\item Slightly different solution from cgmanager:
+			\begin{itemize}
+			\item Open sparse namespace
+			\item Keep open fd for each mounted controller dir.
+			\end{itemize}
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
 \frametitle{Other Proc virtualization options}
 \begin{itemize}
 \item kernel /proc virtualization
@@ -270,28 +292,6 @@
 {\tiny
 \lstinputlisting{dockerrun.sh}
 }
-\end{frame}
-
-\begin{frame}
-\frametitle{Design choices}
-	\begin{itemize}
-	\item Maintaining lxcfs container mounts across security upgrades
-		\begin{itemize}
-		\item Do not restart on upgrades
-		\item Dlopen private library on each operation
-		\item Reload under lock after SIGUSR1 handler
-		\end{itemize}
-	\item Private cgroup mounts
-		\begin{itemize}
-		\item Don't confuse docker, libvirt with our mounts
-		\item Don't pin any host mounts in our namespace
-		\item Slightly different solution from cgmanager:
-			\begin{itemize}
-			\item Open sparse namespace
-			\item Keep open fd for each mounted controller dir.
-			\end{itemize}
-		\end{itemize}
-	\end{itemize}
 \end{frame}
 
 \begin{frame}
