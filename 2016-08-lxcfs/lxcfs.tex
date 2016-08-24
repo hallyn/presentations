@@ -88,7 +88,7 @@
 %    TITLE PAGE
 %----------------------------------------------------------------------------------------
 
-\title[LXCFS]{Not just for LXC anymore} % The short title appears at the bottom of every slide, the full title is only on the title page
+\title[LXCFS]{LXCFS: Not just for LXC anymore} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Serge Hallyn} % Your name
 \institute{LXC project}
@@ -104,10 +104,18 @@
 \frametitle{About me}
 \begin{itemize}
 \item 2003 - bsdjail
-\item 2005 - containers
+\item 2005 - containers % \\
+%{\tiny This is an obscure, weird piece of functionality for some special case
+%usages most of which are going to be eliminated by Xen. I don't see the
+%kernel side justification for it at all.}
 \item 2010 - lxc
-\item (end of) 2013 - cgmanager, unprivileged containers
-\item (end of) 2014 - lxcfs
+\item 2013 - unprivileged containers
+	\begin{itemize}
+	\item User namespaces
+	\item Network
+	\item Cgroup manipulation
+	\end{itemize}
+\item 2014 - lxcfs
 \end{itemize}
 \end{frame}
 
@@ -117,8 +125,8 @@
 	\item Central cgroup manager
 	\item Goals
 		\begin{itemize}
-		\item Simplify container manager code \
-			Ignore questions of mountpoints
+		\item Simplify container manager code \\
+			(Ignore questions of mountpoints)
 		\item Delegate cgroups to users
 		\item Safely support unprivileged, nested containers
 		\end{itemize}
@@ -141,64 +149,53 @@
 
 \begin{frame}[fragile]
 \frametitle{Enter lxcfs}
+	FUSE filesystem
+	\includegraphics[width=\textwidth]{fuse.png}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Enter lxcfs}
 	\begin{itemize}
-	\item FUSE filesystem
 	\item Cgroupfs virtualization
 		\begin{itemize}
 		\item Over cgmanager DBus interface \\
 			\ldots Over cgroupfs virtual fs \\
 			\ldots over cgroup kernel feature
-		\item Worked - but performance cost became high
+		\item Worked - but performance cost became high \\
+			\ldots Especially with systemd
 		\pause
 		\item Drop cgmanager, use own native cgroupfs mountsk
 		\pause
 		\item Finally obsolete - cgroup namespaces
 		\end{itemize}
-	\pause
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Enter lxcfs}
+	\begin{itemize}
 	\item Procfs virtualization
 		\begin{itemize}
-		\item Done years ago by dlezcano
-		\item Done for for years by libvirt
+		\item Host resources $>>$ container's
+		\item Some userspace tries to be civil
+		\item {\tt top}, {\tt ps} \dots look at {\tt /proc}
+		\item Show only available memory, cpus
+		\item Show actual container uptime
 		\end{itemize}
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Basic design}
-\includegraphics[width=\textwidth]{lxcfs.png}
-\end{frame}
-
-\begin{frame}
-\frametitle{Issues}
-	\begin{itemize}
-	\item Maintaining lxcfs container mounts across security upgrades
-		\begin{itemize}
-		\item Do not restart on upgrades
-		\item Dlopen private library on each operation
-		\item Reload under lock after SIGUSR1 handler
-		\end{itemize}
-	\item Private cgroup mounts
-		\begin{itemize}
-		\item Don't confuse docker, libvirt with our mounts
-		\item Don't pin any host mounts in our namespace
-		\item Slightly different solution from cgmanager:
-			\begin{itemize}
-			\item Open sparse namespace
-			\item Keep open fd for each mounted controller dir.
-			\end{itemize}
-		\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Other Proc virtualization options}
+\frametitle{Proc virtualization options}
 \begin{itemize}
-\item kernel /proc virtualization
+\item Kernel /proc virtualization
 	\begin{itemize}
 	\item Deemed unacceptable for years
+	\item Muddled by lack of ``container'' in kernel
 	\item Might be acceptable as a {\bf new} procfs
 	\end{itemize}
-\item libresource
+\item Teach userspace
+\item Libresource
 	\begin{itemize}
 	\item Some community interest
 	\item Did not gain traction
@@ -208,13 +205,32 @@
 		\item adapt existing tools (procps, top, etc)
 		\end{itemize}
 	\end{itemize}
+\item Fuse
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Basic design}
+\includegraphics[width=\textwidth]{lxcfs.png}
+\end{frame}
+
+\begin{frame}
+\frametitle{LXCFS}
+Supported files:
+	\begin{itemize}
+	\item cpuinfo
+	\item meminfo
+	\item stat
+	\item uptime
+	\item diskstats
+	\item swaps
+	\end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Other FUSE based proc virtualization}
 	\begin{itemize}
-	\item original lxc approach
+	\item original lxc approach (dlezcano)
 		\begin{itemize}
 		\item since 2008
 		\item no longer compiles
@@ -236,39 +252,24 @@
 \end{frame}
 
 \begin{frame}
-\frametitle{LXCFS features}
+\frametitle{Complications}
 	\begin{itemize}
-	\item Cgroup virtualization and delegation (obsolete)
-	\item Proc virtualization:
+	\item Maintaining lxcfs container mounts across security upgrades
 		\begin{itemize}
-		\item cpuinfo
-		\item meminfo
-		\item stat
-		\item uptime
-		\item diskstats
-		\item swaps
+		\item Do not restart on upgrades
+		\item Dlopen private library on each operation
+		\item Reload under lock after SIGUSR1 handler
 		\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Requested features}
-	\begin{itemize}
-	\item support {\tt /sys/devices/system/cpu}
-	\item loadavg
+	\item Private cgroup mounts
 		\begin{itemize}
-		\item Problem - seems to require polling and tracking data
-		\item Could benefit from new kernel support
+		\item Don't confuse docker, libvirt with our mounts
+		\item Don't pin any host mounts in our namespace
+		\item Slightly different solution from cgmanager:
+			\begin{itemize}
+			\item Open sparse namespace
+			\item Keep open fd for each mounted controller dir.
+			\end{itemize}
 		\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Bugs}
-	\begin{itemize}
-	\item ram reported incorrect
-	\item swapfree incorrect
-	\item ps ux returns no btime in {\tt /proc/stat}
 	\end{itemize}
 \end{frame}
 
@@ -292,6 +293,28 @@
 {\tiny
 \lstinputlisting{dockerrun.sh}
 }
+\end{frame}
+
+\begin{frame}
+\frametitle{Requested features}
+	\begin{itemize}
+	\item support {\tt /sys/devices/system/cpu}
+%	{\tt cpu0  cpu1  cpu2  cpu3  cpufreq  cpuidle  intel$\_$pstate  isolated  kernel$\_$max  microcode  modalias  offline  online  possible  power  present  uevent }
+	\item loadavg
+		\begin{itemize}
+		\item Problem - seems to require polling and tracking data
+		\item Could benefit from new kernel support
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Bugs}
+	\begin{itemize}
+	\item ram reported incorrect
+	\item swapfree incorrect
+	\item ps ux returns no btime in {\tt /proc/stat}
+	\end{itemize}
 \end{frame}
 
 \begin{frame}
