@@ -1,0 +1,98 @@
+completely unprivileged containers
+
+outline:
+
+Virtualization
+	* Making virtual instances of hardware, os, or functions
+	  * Natural thing to do
+	* Reasons
+	  * Hide architecture differences
+	    * CP/CMS
+		* chroot + personalities
+	  * Support multi-user
+	  * Test Next level down (i.e. OS on new hardware)
+	  * Scale instances as hardware grows
+	* Hardware emulation (qemu)
+	* Paravirtualiztion
+	* OS Emulation (User level API, system calls)
+	* NFV, \ldots
+
+What are Containers
+	VMs
+	 * may emulate or para-virt hardware
+	 * run an os
+	 * accessing host resources is like intra-host access
+	   * sharing finagled in after the fact
+	     (file/directory sharing, etc)
+	
+Pre-linux containers were like light vms
+	jails
+	solaris zones
+	linux-vserver
+	openvz
+
+	no hardware virt, no os
+
+	but focus was on isolation, not sharing
+
+Linux containers do not exist
+	cgroups
+	namespaces
+	users mostly use tools to hide this
+		docker run --rm -it ubuntu bash
+		lxc launch ubuntu:xenial x1
+
+Using namespaces by hand
+	sudo lxc-unshare -s "MOUNT|PID" -M -- bash
+		private mounts
+		pids virtualized
+		(umount /proc; then ps -ef; kill one of those processes)
+		(ifconfig -a)
+		flexible
+		too flexible - which is why we have full toolsuites
+	Two notes:
+		rootfs != mounts
+			up a rootfs
+				make busybox rootfs by hand - no root required
+				or untar; debootstrap; etc - require root again
+				will get to later
+		i used sudo
+			setuid-root
+
+Setuid
+	show an example of tricking a setuid-root program
+
+Uid namespace
+	By default, uid map is 0-4294967295 = 0-4294967295
+	New uidns has no mappings
+	Unpriv user may map own uid to any ns id
+	Ns id 0 is privileged over all resources owned by ns
+		and unshare all other namespaces
+	Setuid-root programs delegate subuids
+		newuidmap using /etc/subuid
+		newgidmap using /etc/subgid
+
+Putting it together - let's make a rootfs
+	lxc-usernsexec -m b:0:100000:65536 -m b:100000:1000:1 -- tar -C rootfs.dir -Jxf rootfs.tgz
+	  Give container root privilege over my host uid (temporarily)
+	lxc-usernsexec -- ls -l rootfs.dir
+	lxc-usernsexec -- ls -l /
+	lxc-usernsexec -- sh
+	  lxc-unshare -s "MOUNT|PID|NETWORK" -- chroot rootfs.dir /bin/sh
+		mount -t proc proc /proc
+		ps -ef
+		adduser ubuntu
+		ls l /home
+	lxc-usernsexec -- rm -rf rootfs.dir/*
+
+Networking
+	user ns can unshare netns
+	  which it then owns
+	user ns cannot 'hook into' host ns
+	solution: delegate bridges
+	  /etc/lxc/lxc-usernet
+	  @user veth @bridge @number
+	lxc-user-nic
+	  creates veth pair
+	  inserts one into container
+	  hooks other into specified bridge if permitted
