@@ -185,10 +185,54 @@
 \end{figure}
 \pause
 \vspace{1in}
-Why sudo?
+\item Why sudo?
 \end{center}
+
+	\begin{itemize}
+	\item Insert setuid description of figure here
+	\end{itemize}
 \end{frame}
 
+\begin{frame}
+\frametitle{Uid namespace}
+	\begin{itemize}
+	\item By default, uid map is $\left\{0:2^{32}-1\right\} \rightarrow \left\{ 0:2^{31}-1\right\}$
+	\item New uid namespace has no mapping ($\varnothing$)
+	\item Unprivileged user may map own uid to any namespace id
+	\item Namespace id 0 is privileged over namespace's resources and may unshare all namespaces
+	\item Setuid-root programs delegate subuids
+		\begin{itemize}
+		\item newuidmap using /etc/subuid
+		\item newgidmap using /etc/subgid
+		\end{itemize}
+	\end{itemize}
+
+\end{frame}
+
+\begin{frame}
+\frametitle{Putting it together}
+Let's make a rootfs
+\end{frame}
+
+\begin{frame}
+\frametitle{Networking}
+	\begin{itemize}
+	\item User namespace can unshare network namespace \\
+		which it then owns
+	\item User ns cannot ``hook into'' host namespace
+	\item Solution: delegate bridges
+		\begin{itemize}
+		\item Be careful! nics can spoof each other
+		\item /etc/lxc/lxc-usernet: user veth bridge number
+		\end{itemize}
+	\item lxc-user-nic
+		\begin{itemize}
+		\item Creates veth pair
+		\item Inserts one into container
+		\item Hooks other into specified host bridge (if permitted)
+		\end{itemize}
+	\end{itemize}
+\end{frame}
 
 \begin{frame}
 \frametitle{Questions/Comments?}
