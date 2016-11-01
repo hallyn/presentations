@@ -21,6 +21,7 @@
 \usepackage[T1]{fontenc}
 \usepackage{listings}
 \usepackage{color}
+\usepackage{subcaption}
 
 \mode<presentation> {
 
@@ -212,8 +213,34 @@
 		\item newgidmap using /etc/subgid
 		\end{itemize}
 	\end{itemize}
-
 \end{frame}
+
+\begin{frame}
+\frametitle{UID Namespaces}
+\begin{figure}
+\centering
+\begin{subfigure}{.5\textwidth}
+\centering
+	\includegraphics[width=0.8 \linewidth]{uidns1.png}
+	\caption{Empty UID Namespace}
+\end{subfigure}%
+\begin{subfigure}{.5\textwidth}
+\centering
+	\includegraphics[width=0.8 \linewidth]{uidns2.png}
+	\caption{Unprivileged UID Namespace}
+\end{subfigure}
+\end{figure}
+\end{frame}
+
+\begin{frame}
+\frametitle{UID Namespaces}
+\begin{figure}
+	\includegraphics[height=0.7\textheight]{uidns3.png}
+	\caption{Delegated UID Namespace}
+\end{figure}
+\end{frame}
+
+
 
 \begin{frame}
 \frametitle{Putting it together}
