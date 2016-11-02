@@ -114,18 +114,12 @@
 		\begin{itemize}
 		\item Pieces of old "root powers"
 		\item Disembodied from uid 0
-		\item File capabilities can be forced
 		\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-\frametitle{Two ways to start unprivileged}
-	\begin{itemize}
-	\item Start as root (or setuid), drop caps
-	\item File capabilities
+	\item Two ways to start unprivileged
 		\begin{itemize}
-		\item setcap cap\_sys\_admin=pe helloworld
+		\item Start as root (or setuid), drop caps, switch uid
+		\item File capabilities \\
+			setcap cap\_sys\_admin=pe helloworld
 		\end{itemize}
 	\end{itemize}
 \end{frame}
@@ -146,7 +140,7 @@
 	\item Includes kuid of ns root id
 	\item Filecaps are only used if targeted kuid owns current userns
 	\item Implicitly rewrite caps in user namespace
-	\item One capability per file
+	\item One capability set per file
 	\item May overwrite if privileged over cap target
 	\end{itemize}
 \end{frame}
