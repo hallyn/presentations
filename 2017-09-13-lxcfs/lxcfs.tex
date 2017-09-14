@@ -1,0 +1,159 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Beamer Presentation
+% LaTeX Template
+% Version 1.0 (10/11/12)
+%
+% This template has been downloaded from:
+% http://www.LaTeXTemplates.com
+%
+% License:
+% CC BY-NC-SA 3.0 (http://creativecommons.org/licenses/by-nc-sa/3.0/)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------------------------------------
+%    PACKAGES AND THEMES
+%----------------------------------------------------------------------------------------
+
+\documentclass{beamer}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{subcaption}
+
+\mode<presentation> {
+
+% The Beamer class comes with a number of default slide themes
+% which change the colors and layouts of slides. Below this is a list
+% of all the themes, uncomment each in turn to see what they look like.
+
+%\usetheme{default}
+%\usetheme{AnnArbor}
+%\usetheme{Antibes}
+%\usetheme{Bergen}
+%\usetheme{Berkeley}
+%\usetheme{Berlin}
+\usetheme{Boadilla}  % good
+%\usetheme{CambridgeUS}
+%\usetheme{Copenhagen}
+%\usetheme{Darmstadt}
+%\usetheme{Dresden}
+%\usetheme{Frankfurt}
+%\usetheme{Goettingen}
+%\usetheme{Hannover}
+%\usetheme{Ilmenau}
+%\usetheme{JuanLesPins}
+%\usetheme{Luebeck}
+%\usetheme{Madrid}
+%\usetheme{Malmoe}
+%\usetheme{Marburg}
+%\usetheme{Montpellier}
+%\usetheme{PaloAlto}
+%\usetheme{Pittsburgh}
+%\usetheme{Rochester}
+%\usetheme{Singapore}
+%\usetheme{Szeged}
+%\usetheme{Warsaw}
+
+% As well as themes, the Beamer class has a number of color themes
+% for any slide theme. Uncomment each of these in turn to see how it
+% changes the colors of your current slide theme.
+
+%\usecolortheme{albatross}
+\usecolortheme{beaver}  % simple red
+%\usecolortheme{beetle}
+%\usecolortheme{crane}  % yellow
+%\usecolortheme{dolphin}
+%\usecolortheme{dove}
+%\usecolortheme{fly}
+%\usecolortheme{lily}
+%\usecolortheme{orchid}
+%\usecolortheme{rose}
+%\usecolortheme{seagull}
+%\usecolortheme{seahorse}  % orig
+%\usecolortheme{whale}
+%\usecolortheme{wolverine}  % old yellow wolverine
+
+%\setbeamertemplate{footline} % To remove the footer line in all slides uncomment this line
+%\setbeamertemplate{footline}[page number] % To replace the footer line in all slides with a simple slide count uncomment this line
+
+%\setbeamertemplate{navigation symbols}{} % To remove the navigation symbols from the bottom of all slides uncomment this line
+}
+
+\usepackage{graphicx} % Allows including images
+\usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
+
+%----------------------------------------------------------------------------------------
+%    TITLE PAGE
+%----------------------------------------------------------------------------------------
+
+\title[Exposing resource limits to containers with LXCFS]{} % The short title appears at the bottom of every slide, the full title is only on the title page
+
+\author{Serge Hallyn} % Your name
+\institute{Cisco}
+\date{\today} % Date, can be changed to a custom date
+
+\begin{document}
+
+\begin{frame}
+\titlepage % Print the title page as the first slide
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Problem}
+	\begin{itemize}
+	\item Cgroups impose resource limits on services
+	\item Services query resource availability through /proc
+	\item Then scale per the reported availability
+	\item /proc is system-level
+\pause
+	\item Solutions:
+		\begin{itemize}
+		\item Virtualize /proc etc in kernel
+		\item Update user-space to consider cgroup limits etc
+		\item Libresource (http://github.com/lxc/libresource)
+		\item LXCFS (http://github.com/hallyn/lxcfs)
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{LXFS}
+	\begin{itemize}
+	\item Overmounts certain /proc files:
+		\begin{itemize}
+		\item /proc/cpuinfo
+		\item /proc/diskstats
+		\item /proc/meminfo
+		\item /proc/stat
+		\item /proc/swaps
+		\item /proc/uptime
+		\end{itemize}
+	\item Used to virtualize cgroupfs (before cgroup namespaces)
+\pause
+	\item Unimplemented features:
+		\begin{itemize}
+		\item btime
+		\item loadavg
+		\item /sys/devices/system/cpu \
+Open question: If container has cpus 0 and 3, should we show
+cpu0 and cpu1, or cpu0 and cpu3?
+		\item sysinfo (out of scope)
+		\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Questions/Comments?}
+\begin{itemize}
+\item Join! :)
+\item shallyn@cisco.com
+\item serge@hallyn.com
+\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\end{document} 
